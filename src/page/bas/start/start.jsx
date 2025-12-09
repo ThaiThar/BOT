@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Camera, RefreshCw, Dice5 } from "lucide-react";
 import './startstyle.css'
 import backCardUrl from '../../../assets/backcard.jpg'
+import Swal from "sweetalert2";
 
 function Start() {
     const [cards, setCards] = useState(
@@ -10,7 +11,7 @@ function Start() {
     const [images, setImages] = useState([]);
     const [stage, setStage] = useState("choose");
     const handleChooseImages = (files) => {
-        const selected = Array.from(files).slice(0, 5); 
+        const selected = Array.from(files).slice(0, 5);
         Promise.all(
             selected.map(
                 (f) =>
@@ -48,6 +49,13 @@ function Start() {
         );
     };
 
+    const openpopup = () => {
+        Swal.fire({
+                 imageUrl: "https://placeholder.pics/svg/300x1500",
+                imageHeight: 1000,
+                imageAlt: "A tall image"
+            });
+    }
 
     const resetAll = () => {
         setCards(Array.from({ length: 5 }, () => ({ image: null, flipped: false })));
@@ -100,12 +108,12 @@ function Start() {
 
                                     <div className="card-inner">
 
-                                       
+
                                         <div className="card-front">
                                             <img src={backCardUrl} alt="front" />
                                         </div>
 
-                               
+
                                         <div className="card-back">
                                             <img src={card.image} alt="back" />
                                         </div>
