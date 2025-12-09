@@ -1,61 +1,102 @@
-.enddeck{
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-.deck{
-    background-image: url("../../../assets/backcard02.jpg");
-    background-size: contain;
-    object-fit: cover;
-    background-position: center;
-    width: 250px;
-    height: 180px;
-    border: 5px solid black ;
-    border-radius: 10px;
-    margin: 5px;
-}
-.deck:hover{
-    .jua,.discard,.select{
-        display: block;
-    }
-}
-.end{
-    background-color: black;
-    width: 250px;
-    height: 180px;
-    border: 5px solid black ;
-    border-radius: 10px;
-    margin: 5px;
-}
-.end2{
-    background-color: black;
-    width: 250px;
-    height: 180px;
-    border: 5px solid black ;
-    border-radius: 10px;
-    margin: 5px;
-}
-.jua{
+.deck {
+  position: relative;
+  /* border: 2px solid #333; */
+  padding: 15px;
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  .deck-buttom{
     display: none;
-    width: 50px;
-    height: 50px;
-    background-color: red;
-    margin: 5px;
-     border-radius: 10px;
+  }
+
 }
-.discard{
-     display: none;
-    width: 50px;
-    height: 50px;
-    background-color: blue;
-    margin: 5px;
-     border-radius: 10px;
+  .deck:hover{
+        .deck-buttom{
+        display: flex;
+        position: absolute;
+    }
+  }
+
+.deckCardsPreview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
 }
-.select{
-     display: none;
-    width: 50px;
-    height: 50px;
-    background-color: green;
-    margin: 5px;
-     border-radius: 10px;
+
+
+.cardImg {
+  width: 60px;
+  height: 75px;
+  object-fit: cover;
+  border: 2px solid black;
+  border-radius: 6px;
+}
+
+
+.jua, .discard, .select {
+  width: 50px;
+  height: 50px;
+  border: 2px solid black;
+  margin: 5px;
+}
+
+.select-file-btn {
+  background: #333;
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.deckOneCard {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 10px;
+
+}
+
+.deckSingleImg {
+  width: 150px;
+  height: 180px;
+  border-radius: 8px;
+  border: 2px solid white;
+  
+  /* ตั้งค่าเงาเริ่มต้น */
+  box-shadow:
+    4px 4px 0 white, 
+    4px 4px 6px rgba(0,0,0,0.3), 
+    8px 8px 0 white, 
+    8px 8px 10px rgba(0,0,0,0.2);
+    
+  /* เพิ่ม transition ให้ลื่นไหล */
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+/* พอเอาเมาส์ชี้ */
+.deckSingleImg:hover {
+  transform: translateY(-5px) translateX(-5px); /* ขยับตัวการ์ดขึ้น */
+  
+  /* เงาจะยืดออกตาม */
+  box-shadow:
+    6px 6px 0 white, 
+    6px 6px 10px rgba(0,0,0,0.2), 
+    12px 12px 0 white, 
+    12px 12px 15px rgba(0,0,0,0.15),
+    18px 18px 0 white, 
+    18px 18px 20px rgba(0,0,0,0.1);
+}
+  
+
+
+
+.jua, .discard, .select {
+  width: 50px;
+  height: 50px;
+  background: #ccc;
+  border: 2px solid black;
+  margin: 5px;
+  cursor: pointer;
 }
