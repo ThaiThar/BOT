@@ -2,7 +2,7 @@
     display: flex;
     justify-content: space-around;
     align-items: center;
-    width: 800px;
+    width: 1000px;
     height: 650px;
     background-color: rgb(87, 216, 255);
     flex-direction: column;

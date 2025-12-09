@@ -89,7 +89,7 @@ function End1() {
         <div>
 
             {/* ปุ่มเลือกการ์ด */}
-            <div style={{ marginBottom: "20px", textAlign: "center" }}>
+            <div style={{ marginBottom: "5px", textAlign: "center" }}>
                 <label className="select-file-btn">
                     เลือกการ์ดทั้งหมด (สูงสุด 50 ใบ)
                     <input
@@ -111,9 +111,9 @@ function End1() {
 
                     <div className="deck-buttom">
                         <div className="deckcard">
-                            <div className="buttomdeckcard jua" onClick={viewDeck}>เลือกการ์ด</div>
-                            <div className="buttomdeckcard discard">จั่วการ์ด</div>
-                            <div className="buttomdeckcard select">ทิ้งการ์ด</div>
+                            <div className="buttomdeckcard select" onClick={viewDeck}>เลือกการ์ด</div>
+                            <div className="buttomdeckcard discard">ทิ้งการ์ด</div>
+                            <div className="buttomdeckcard jua">จั่วการ์ด</div>
                             <div className="buttomdeckcard shuffle">สับการ์ด</div>
                             <div className="buttomdeckcard snoop">สอดแนม</div>
                             <div className="buttomdeckcard down">ใต้กอง</div>
@@ -121,8 +121,18 @@ function End1() {
                     </div>
 
                 </div>
+                        {/* นรก */}
                 <div className="end">
+                    <img src={myPic} className="deckSingleImg" alt="deck card" />
+                    <div className="end-buttom"> 
+                        <div className="deckcard">
+                            <div className="buttomdeckcard end-select">เลือกการ์ด</div>
+                            <div className="buttomdeckcard end-discard">ทิ้งการ์ด</div>
+                        </div>
+                    </div>
+
                 </div>
+                        {/* นรก2 */}
                 <div className="end2">
                 </div>
             </div>
