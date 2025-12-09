@@ -1,0 +1,13 @@
+.boxstart{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.livecard{
+    background-color: yellow;
+    width: 240px;
+    height: 110px;
+    border: 5px solid black ;
+    border-radius: 10px;
+    margin: 5px;
+}
