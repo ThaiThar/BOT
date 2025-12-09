@@ -110,23 +110,20 @@ function End1() {
                     <img src={myPic} className="deckSingleImg" alt="deck card" />
 
                     <div className="deck-buttom">
-                        <div className="jua" onClick={viewDeck}></div>
-                        <div className="discard"></div>
-                        <div className="select"></div>
+                        <div className="deckcard">
+                            <div className="buttomdeckcard jua" onClick={viewDeck}>เลือกการ์ด</div>
+                            <div className="buttomdeckcard discard">จั่วการ์ด</div>
+                            <div className="buttomdeckcard select">ทิ้งการ์ด</div>
+                            <div className="buttomdeckcard shuffle">สับการ์ด</div>
+                            <div className="buttomdeckcard snoop">สอดแนม</div>
+                            <div className="buttomdeckcard down">ใต้กอง</div>
+                        </div>
                     </div>
 
                 </div>
-
                 <div className="end">
-                    <div className="jua"></div>
-                    <div className="discard"></div>
-                    <div className="select"></div>
                 </div>
-
                 <div className="end2">
-                    <div className="jua"></div>
-                    <div className="discard"></div>
-                    <div className="select"></div>
                 </div>
             </div>
         </div>

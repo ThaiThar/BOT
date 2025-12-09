@@ -100,3 +100,37 @@
   margin: 5px;
   cursor: pointer;
 }
+.shuffle {
+  width: 50px;
+  height: 50px;
+  background: #ccc;
+  border: 2px solid black;
+  margin: 5px;
+  cursor: pointer;
+}
+.snoop {
+  width: 50px;
+  height: 50px;
+  background: #ccc;
+  border: 2px solid black;
+  margin: 5px;
+  cursor: pointer;
+}
+.deckcard{
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+.buttomdeckcard{
+    border-radius: 50%;
+}
+.down {
+  width: 50px;
+  height: 50px;
+  background: #ccc;
+  border: 2px solid black;
+  margin: 5px;
+  cursor: pointer;
+}
