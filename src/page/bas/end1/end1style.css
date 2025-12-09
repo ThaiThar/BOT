@@ -1,168 +1,197 @@
+
+.end1-wrapper {
+  width: 300px;
+  height: 650px;
+
+  border: 2px solid #222;
+  border-radius: 12px;
+  overflow: hidden;
+
+  background: #f9f9f9;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 6px;
+}
+
+
+.enddeck {
+  width: 100%;
+  height: 100%;
+
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  overflow-y: auto;
+  padding-bottom: 20px;
+}
+
+
+
 .deck {
   position: relative;
-  /* border: 2px solid #333; */
-  padding: 10px;
-  min-height: 200px;
+  padding: 10px 0;
+  min-height: 180px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  transition: all 0.3s ease-in-out;
+}
+
+.deck:hover {
+  transform: translateY(-4px);
+}
+
+
+.deckSingleImg {
+  width: 65%;
+  max-width: 160px;
+
+  height: auto;
+  border-radius: 12px;
+  border: 3px solid #fff;
+
+  transition: 0.25s ease;
+  cursor: pointer;
+
+  box-shadow:
+    0 4px 0 #fff,
+    0 4px 6px rgba(0,0,0,0.25),
+    0 10px 0 #fff,
+    0 10px 12px rgba(0,0,0,0.15);
+}
+
+.deckSingleImg:hover {
+  transform: translateY(-6px);
+  box-shadow:
+    0 6px 0 #fff,
+    0 6px 8px rgba(0,0,0,0.25),
+    0 14px 0 #fff,
+    0 14px 16px rgba(0,0,0,0.20);
+}
+
+
+/* ================================
+   DECK BUTTONS
+================================*/
+.deck-buttom {
+  display: none;
+  margin-top: 10px;
+}
+
+.deck:hover .deck-buttom {
+  display: flex;
+}
+
+.deckcard {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  justify-items: center;
+}
+
+.buttomdeckcard {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+
+  background: linear-gradient(135deg, #fff, #ddd);
+  border: 2px solid black;
+  cursor: pointer;
+
   display: flex;
   align-items: center;
-  flex-direction: column;
-  .deck-buttom{
-    display: none;
-  }
+  justify-content: center;
 
+  font-size: 9px;
+  font-weight: bold;
+  transition: 0.2s;
 }
-  .deck:hover{
-        .deck-buttom{
-        display: flex;
-        position: absolute;
-    }
-  }
 
-.deckCardsPreview {
+.buttomdeckcard:hover {
+  background: #000;
+  color: white;
+  transform: scale(1.12);
+}
+
+
+.end,
+.end2 {
+  width: 100%;
+  min-height: 130px;
+  max-height: 180px;
+
+  border-radius: 10px;
+  padding: 6px;
+
+  overflow-y: auto;
+
+  transition: 0.3s;
+}
+
+.end {
+  background: rgba(255, 70, 70, 0.1);
+  border: 2px dashed #ff2d2d;
+}
+
+.end:hover {
+  background: rgba(255, 70, 70, 0.2);
+}
+
+.end2 {
+  background: rgba(130, 70, 255, 0.1);
+  border: 2px dashed #934bff;
+}
+
+.end2:hover {
+  background: rgba(130, 70, 255, 0.2);
+}
+
+
+/* ================================
+   CARDS IN END / END2
+================================*/
+.endzone-cards {
   display: flex;
   flex-wrap: wrap;
   gap: 5px;
 }
 
+.endcard-img {
+  width: 45px;
+  height: 60px;
 
-.cardImg {
-  width: 60px;
-  height: 75px;
-  object-fit: cover;
-  border: 2px solid black;
-  border-radius: 6px;
+  border-radius: 5px;
+  border: 2px solid #000;
+
+  transform: rotate(calc(-6deg + (12deg * var(--r))));
+  transition: 0.2s ease;
+  cursor: pointer;
+}
+
+.endcard-img:hover {
+  transform: rotate(0deg) scale(1.3);
+  z-index: 50;
 }
 
 
-.jua, .discard, .select {
-  width: 50px;
-  height: 50px;
-  border: 2px solid black;
-  margin: 5px;
-}
 
 .select-file-btn {
   background: #333;
-  color: #fff;
-  padding: 12px 20px;
-  border-radius: 10px;
+  color: white;
+
+  padding: 10px 16px;
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 16px;
+
+  font-size: 14px;
+  transition: 0.2s ease;
 }
 
-.deckOneCard {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 10px;
-
-}
-
-.deckSingleImg {
-  width: 150px;
-  height: 180px;
-  border-radius: 8px;
-  border: 2px solid white;
-  
-  /* ตั้งค่าเงาเริ่มต้น */
-  box-shadow:
-    4px 4px 0 white, 
-    4px 4px 6px rgba(0,0,0,0.3), 
-    8px 8px 0 white, 
-    8px 8px 10px rgba(0,0,0,0.2);
-    
-  /* เพิ่ม transition ให้ลื่นไหล */
-  transition: all 0.3s ease;
-  cursor: pointer;
-}
-
-/* พอเอาเมาส์ชี้ */
-.deckSingleImg:hover {
-  transform: translateY(-5px) translateX(-5px); /* ขยับตัวการ์ดขึ้น */
-  
-  /* เงาจะยืดออกตาม */
-  box-shadow:
-    6px 6px 0 white, 
-    6px 6px 10px rgba(0,0,0,0.2), 
-    12px 12px 0 white, 
-    12px 12px 15px rgba(0,0,0,0.15),
-    18px 18px 0 white, 
-    18px 18px 20px rgba(0,0,0,0.1);
-}
-  
-
-
-
-.jua, .discard, .select {
-  width: 50px;
-  height: 50px;
-  background: #ccc;
-  border: 2px solid black;
-  margin: 5px;
-  cursor: pointer;
-}
-.shuffle {
-  width: 50px;
-  height: 50px;
-  background: #ccc;
-  border: 2px solid black;
-  margin: 5px;
-  cursor: pointer;
-}
-.snoop {
-  width: 50px;
-  height: 50px;
-  background: #ccc;
-  border: 2px solid black;
-  margin: 5px;
-  cursor: pointer;
-}
-.deckcard{
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-}
-.buttomdeckcard{
-    border-radius: 50%;
-}
-.down {
-  width: 50px;
-  height: 50px;
-  background: #ccc;
-  border: 2px solid black;
-  margin: 5px;
-  cursor: pointer;
-}
-.end{
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    padding: 10px;
-}
-.end-buttom{
-    display: none;
-}
-.end:hover{
-    .end-buttom{
-        display: flex;
-        position: absolute;
-    }
-}
-.end-select {
-  width: 50px;
-  height: 50px;
-  background: #ccc;
-  border: 2px solid black;
-  margin: 5px;
-  cursor: pointer;
-}
-.end-discard {
-  width: 50px;
-  height: 50px;
-  background: #ccc;
-  border: 2px solid black;
-  margin: 5px;
-  cursor: pointer;
+.select-file-btn:hover {
+  background: #111;
 }

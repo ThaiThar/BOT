@@ -28,3 +28,23 @@
     /* z-index: 1; */
     border-radius: 10px;
 }
+.floating-hand-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #222;
+    color: white;
+    padding: 12px 18px;
+    border-radius: 50px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+    z-index: 9999;
+    transition: 0.2s;
+}
+
+.floating-hand-btn:hover {
+    transform: scale(1.1);
+    background: #000;
+}

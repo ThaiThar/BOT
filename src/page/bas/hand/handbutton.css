@@ -1,0 +1,26 @@
+.hand-floating-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+
+    background: #222;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+
+    font-size: 18px;
+    font-weight: bold;
+
+    border-radius: 50px;
+    cursor: pointer;
+
+    box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+    z-index: 9999;
+
+    transition: 0.2s;
+}
+
+.hand-floating-btn:hover {
+    background: #444;
+    transform: translateY(-3px);
+}
