@@ -1,0 +1,53 @@
+.enddeck{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.deck{
+    background-image: url("../../../assets/backcard02.jpg");
+    background-size: contain;
+    object-fit: cover;
+    background-position: center;
+    width: 250px;
+    height: 180px;
+    border: 5px solid black ;
+    border-radius: 10px;
+    margin: 5px;
+}
+.end{
+    background-color: black;
+    width: 250px;
+    height: 180px;
+    border: 5px solid black ;
+    border-radius: 10px;
+    margin: 5px;
+}
+.end2{
+    background-color: black;
+    width: 250px;
+    height: 180px;
+    border: 5px solid black ;
+    border-radius: 10px;
+    margin: 5px;
+}
+.jua{
+    width: 50px;
+    height: 50px;
+    background-color: red;
+    margin: 5px;
+     border-radius: 10px;
+}
+.discard{
+    width: 50px;
+    height: 50px;
+    background-color: blue;
+    margin: 5px;
+     border-radius: 10px;
+}
+.select{
+    width: 50px;
+    height: 50px;
+    background-color: green;
+    margin: 5px;
+     border-radius: 10px;
+}

@@ -1,15 +1,25 @@
 import React from 'react'
+import './end1style.css'
 
 function end1() {
     return (
         <div>
-            <div className="box endtop">
-                <img src="../../assets/AvatarCard/kk.png" alt="" />
-            </div>
-
-            <div className="end2">
-                <div className="box"></div>
-                <div className="box"></div>
+            <div className="enddeck">
+                <div className="deck">
+                    <div className='jua'></div>
+                    <div className='discard'></div>
+                    <div className='select'></div>
+                </div>
+                <div className="end">
+                    <div className='jua'></div>
+                    <div className='discard'></div>
+                    <div className='select'></div>
+                </div>
+                <div className="end2">
+                    <div className='jua'></div>
+                    <div className='discard'></div>
+                    <div className='select'></div>
+                </div>
             </div>
         </div>
     )

@@ -3,8 +3,12 @@ import './battleStyle.css'
 
 function battle() {
   return (
-    <div>
-      <div className="center-battle"></div>
+    <div className='battlecenter'>
+      <div className='battlebox'>
+        <div className='center-battle'></div>
+        <div className='center-battle'></div>
+        <div className='center-battle'></div>
+      </div>
     </div>
   )
 }

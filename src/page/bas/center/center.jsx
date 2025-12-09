@@ -1,19 +1,26 @@
 import React from 'react'
+import './centerstyle.css'
 
 function center() {
     return (
-        <div>
-            <div className="box b-center">
-                <div className="cardcenter"></div>
-                <div className="cardcenter"></div>
-                <div className="cardcenter"></div>
-                <div className="cardcenter"></div>
+        <div className='boxcenter'>
+            <div className="centermagic">
+                <div className="magiccenter"></div>
+                <div className="magiccenter"></div>
+                <div className="magiccenter"></div>
+                <div className="magiccenter"></div>
             </div>
-            <div className="box b-center">
-                <div className="cardcenter"></div>
-                <div className="cardcenter"></div>
-                <div className="cardcenter"></div>
-                <div className="cardcenter"></div>
+            <div className="modification">
+                <div className="modificationcard"></div>
+                <div className="modificationcard"></div>
+                <div className="modificationcard"></div>
+                <div className="modificationcard"></div>
+            </div>
+            <div className="centeravatar">
+                <div className="avatarcenter"></div>
+                <div className="avatarcenter"></div>
+                <div className="avatarcenter"></div>
+                <div className="avatarcenter"></div>
             </div>
 
         </div>

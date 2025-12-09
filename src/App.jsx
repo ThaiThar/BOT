@@ -8,7 +8,7 @@ function App() {
   return (
     <div className='borad'>
       <Bas />
-      {/* <Battle /> */}
+      <Battle />
       {/* <Mos /> */}
     </div>
   )
