@@ -1,0 +1,249 @@
+/* =============================================== */
+/* HINDU SHUFFLE: GOD MODE 1000%          */
+/* =============================================== */
+
+:root {
+  --magic-gold: #ffaa00;
+  --magic-core: #ffea00;
+  --void-dark: #050505;
+  --card-width: 90px;
+  --card-height: 130px;
+}
+
+.hindu-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 300px; /* เพิ่มพื้นที่สำหรับ Effect */
+  overflow: visible;
+  /* พื้นหลังแบบอวกาศลึกพร้อมแสง Ambient */
+  background: radial-gradient(circle at center, #2e0c00 0%, #000000 80%);
+  perspective: 1500px;
+  position: relative;
+}
+
+/* --- MAGIC CIRCLE BACKGROUND (วงแหวนเวทย์) --- */
+.hindu-wrapper::before {
+  content: '';
+  position: absolute;
+  width: 250px;
+  height: 250px;
+  border: 2px dashed rgba(255, 170, 0, 0.2);
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotateX(60deg);
+  animation: magicSpin 10s linear infinite;
+  box-shadow: 0 0 50px rgba(255, 100, 0, 0.1);
+  pointer-events: none;
+}
+
+.hindu-wrapper::after {
+  content: '';
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  border: 1px solid rgba(255, 200, 0, 0.15);
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotateX(60deg);
+  animation: magicSpin 6s linear infinite reverse;
+  pointer-events: none;
+}
+
+/* --- CONTAINER & CAMERA --- */
+.hindu-container {
+  position: relative;
+  width: 140px;
+  height: 180px;
+  transform-style: preserve-3d;
+  /* มุมกล้อง Cinematic สุดๆ */
+  transform: rotateX(60deg) rotateZ(35deg) translateY(20px);
+}
+
+/* --- BASE CARD STYLING --- */
+.stack,
+.packet {
+  width: var(--card-width);
+  height: var(--card-height);
+  position: absolute;
+  border-radius: 12px;
+  
+  /* ใส่รูปหลังไพ่ของคุณที่นี่ */
+  background: 
+    linear-gradient(135deg, rgba(0,0,0,0.6), rgba(0,0,0,0.1)),
+    url("../../../../assets/backcard.jpg") center / cover no-repeat;
+  
+  /* ขอบไพ่เรืองแสง */
+  border: 1px solid rgba(255, 215, 0, 0.6);
+  
+  /* เงาแบบ Multi-layer */
+  box-shadow: 
+    inset 0 0 20px rgba(0,0,0,0.8),
+    0 5px 15px rgba(0, 0, 0, 0.8),
+    0 0 15px rgba(255, 140, 0, 0.3); /* Glow */
+
+  transform-style: preserve-3d;
+}
+
+/* --- THICKNESS & LAYERS (ความหนาแบบสมจริง) --- */
+/* สร้าง Layer จำลองความหนา */
+.stack::before, .stack::after,
+.packet::before, .packet::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: inherit;
+  border-radius: 12px;
+  opacity: 1;
+  box-shadow: 
+    1px 1px 0 #3a2000,
+    2px 2px 0 #3a2000,
+    3px 3px 0 #3a2000,
+    4px 4px 0 #3a2000;
+  transform: translateZ(-4px);
+  filter: brightness(0.6);
+}
+
+.stack::after { transform: translateZ(-8px); filter: brightness(0.4); }
+.packet::after { transform: translateZ(-6px); filter: brightness(0.5); }
+
+
+/* --- SOURCE STACK (กองต้นทาง) --- */
+.source-stack {
+  top: -20px;
+  left: 40px;
+  transform: translateZ(40px);
+  animation: sourceFloat 2s ease-in-out infinite;
+}
+
+/* --- TARGET STACK (กองปลายทาง) --- */
+.target-stack {
+  top: 30px;
+  left: -20px;
+  transform: translateZ(0px);
+  z-index: 1;
+}
+
+/* Shockwave Effect เมื่อไพ่ตกกระทบ */
+.shockwave {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: transparent;
+  border: 2px solid var(--magic-gold);
+  transform: translate(-50%, -50%) scale(0.5) rotateX(90deg);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* --- MOVING PACKETS (ไพ่ที่บิน) --- */
+.packet {
+  top: -20px;
+  left: 40px;
+  opacity: 0;
+  z-index: 100;
+  /* แสงเวทย์รอบไพ่ตอนบิน */
+  box-shadow: 
+    0 0 20px var(--magic-gold),
+    0 0 40px var(--magic-gold);
+  mix-blend-mode: normal; /* เปลี่ยนจาก screen เพื่อให้เห็นลายไพ่ชัด */
+  
+  animation: hinduGodMove 1.4s cubic-bezier(0.25, 0.8, 0.25, 1) infinite;
+}
+
+/* Particle Trail (หางแสง) */
+.packet .trail {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to top, transparent, var(--magic-gold));
+  opacity: 0.4;
+  transform: scale(0.9);
+  filter: blur(8px);
+  animation: trailFlicker 0.2s infinite;
+}
+
+/* Delays */
+.p1 { animation-delay: 0s; }
+.p2 { animation-delay: 0.4s; }
+.p3 { animation-delay: 0.8s; }
+
+/* Shockwave Triggers (ต้อง sync กับจังหวะไพ่ตก) */
+.s1 { animation: shockwavePulse 1.4s infinite 0.7s; } /* ตกที่ประมาณ 50-60% ของ loop */
+.s2 { animation: shockwavePulse 1.4s infinite 1.1s; }
+.s3 { animation: shockwavePulse 1.4s infinite 1.5s; }
+
+
+/* =============================================== */
+/* KEYFRAMES                      */
+/* =============================================== */
+
+@keyframes hinduGodMove {
+  0% {
+    transform: translate3d(0, 0, 40px) rotateY(0deg);
+    opacity: 0;
+    filter: brightness(1);
+  }
+  10% {
+    opacity: 1;
+    /* ยกขึ้น */
+    transform: translate3d(0, -40px, 80px) rotateY(15deg) rotateZ(5deg);
+    filter: brightness(1.5) drop-shadow(0 0 10px var(--magic-gold));
+  }
+  40% {
+    /* จุดสูงสุด โค้งข้าม */
+    transform: translate3d(-60px, -20px, 60px) rotateY(-30deg) rotateX(10deg);
+  }
+  60% {
+    /* กระแทกลง */
+    transform: translate3d(-60px, 50px, 5px) rotateY(-5deg);
+    filter: brightness(1.2);
+  }
+  65% {
+    /* Squash (บี้แบนเล็กน้อยตอนกระทบ) */
+    transform: translate3d(-60px, 52px, 0px) scale(1.05, 0.95);
+  }
+  80% {
+    /* จมหายไปในกอง */
+    transform: translate3d(-60px, 50px, 0px);
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(-60px, 50px, 0px);
+    opacity: 0;
+  }
+}
+
+@keyframes shockwavePulse {
+  0% {
+    transform: translate3d(0, 0, 0) scale(0.8) rotateX(90deg);
+    opacity: 1;
+    border-width: 4px;
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(2.5) rotateX(90deg);
+    opacity: 0;
+    border-width: 0px;
+  }
+}
+
+@keyframes magicSpin {
+  0% { transform: translate(-50%, -50%) rotateX(60deg) rotateZ(0deg); }
+  100% { transform: translate(-50%, -50%) rotateX(60deg) rotateZ(360deg); }
+}
+
+@keyframes sourceFloat {
+  0%, 100% { transform: translateZ(40px) translateY(0); }
+  50% { transform: translateZ(40px) translateY(-5px); }
+}
+
+@keyframes trailFlicker {
+  0% { opacity: 0.3; height: 100%; }
+  50% { opacity: 0.6; height: 120%; }
+  100% { opacity: 0.3; height: 100%; }
+}

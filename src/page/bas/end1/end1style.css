@@ -196,3 +196,44 @@
 .select-file-btn:hover {
   background: #111;
 }
+
+
+/* สับกาด */
+.shuffle-animation {
+  width: 120px;
+  height: 80px;
+  position: relative;
+  margin: auto;
+}
+
+.shuffle-animation div {
+  width: 60px;
+  height: 80px;
+  background: #444;
+  border: 2px solid #fff;
+  border-radius: 8px;
+  position: absolute;
+  top: 0;
+  left: 30px;
+  animation: shuffle 0.8s infinite ease-in-out;
+  opacity: 0.9;
+}
+
+.shuffle-animation .card1 {
+  background: #c0392b;
+  animation-delay: 0s;
+}
+.shuffle-animation .card2 {
+  background: #2980b9;
+  animation-delay: 0.15s;
+}
+.shuffle-animation .card3 {
+  background: #27ae60;
+  animation-delay: 0.30s;
+}
+
+@keyframes shuffle {
+  0% { transform: translateX(-30px) rotate(-10deg); }
+  50% { transform: translateX(30px) rotate(10deg); }
+  100% { transform: translateX(-30px) rotate(-10deg); }
+}
