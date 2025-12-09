@@ -4,8 +4,11 @@
     align-items: center;
 }
 .livecard{
-    background-color: yellow;
-    width: 240px;
+    background-image: url("../../../assets/backcard02.jpg");
+    background-size: contain;
+    object-fit: cover;
+    background-position: center;
+    width: 150px;
     height: 110px;
     border: 5px solid black ;
     border-radius: 10px;
