@@ -24,3 +24,33 @@
     background: #444;
     transform: translateY(-3px);
 }
+
+.hand-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+}
+
+.hand-img {
+    width: 100%;
+    border-radius: 8px;
+    border: 2px solid #555;
+    cursor: pointer;
+}
+
+.zone-btn {
+    width: 180px;
+    margin: 8px;
+    padding: 12px;
+    border-radius: 10px;
+    border: 2px solid #000;
+    background: #333;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.zone-btn:hover {
+    background: #555;
+}
+

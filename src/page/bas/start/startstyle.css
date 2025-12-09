@@ -1,46 +1,123 @@
+/* ===============================
+   GLOBAL CONTAINER
+================================*/
 .gameContainer {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 10px;
+  
   font-family: 'Sarabun', sans-serif;
 }
 
 
+/* ===============================
+   TOP CONTROL PANEL
+================================*/
 .topControl {
-
-
-  background: white;
-
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  width: 100%;
   text-align: center;
+
+
 }
 
+
+/* ===============================
+   SELECT FILE BUTTON (NEW DESIGN)
+================================*/
+.file-input-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
 
 .fileBtn {
-  padding: 10px 20px;
-  background: #ddd;
-  border-radius: 8px;
+  width: 100%;
+  max-width: 180px;
+
+  background: linear-gradient(135deg, #444, #222);
+  color: #fff;
+
+  padding: 10px 15px;
+  border-radius: 12px;
   cursor: pointer;
-  display: inline-flex;
+
+  display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  font-weight: 500;
+
+  font-size: 13px;
+  font-weight: bold;
+
+  border: 2px solid #000;
+  transition: 0.25s;
+
+  box-shadow:
+    0 3px 0 #000,
+    0 3px 10px rgba(0,0,0,0.4);
+}
+
+/* icon */
+.fileIcon {
+  stroke-width: 2.5;
+}
+
+/* Hover */
+.fileBtn:hover {
+  transform: translateY(-3px);
+  background: linear-gradient(135deg, #555, #111);
+  box-shadow:
+    0 6px 0 #000,
+    0 8px 15px rgba(0,0,0,0.3);
+}
+
+/* Glow aura */
+.fileBtn-glow {
+  position: relative;
+  overflow: hidden;
+}
+
+.fileBtn-glow::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+
+  background: radial-gradient(circle, rgba(255,255,255,0.15), transparent 70%);
+  transform: scale(0);
+  transition: 0.4s;
+  opacity: 0;
+}
+
+.fileBtn-glow:hover::before {
+  transform: scale(1);
+  opacity: 1;
 }
 
 
+/* ===============================
+   BUTTON SET (RANDOM, RESET)
+================================*/
 .mainBtn {
   background: #4CAF50;
   color: white;
-  padding: 1px 2px;
+
+  padding: 6px 10px;
   border-radius: 8px;
   border: none;
+
   cursor: pointer;
   margin-top: 15px;
-  font-size: 8px;
+
+  font-size: 12px;
+  font-weight: bold;
+
   display: inline-flex;
   align-items: center;
-  gap: 0px;
+  gap: 4px;
+
   transition: 0.2s;
 }
 
@@ -54,6 +131,9 @@
 }
 
 
+/* ===============================
+   CARD LIST
+================================*/
 .boxstart {
   display: flex;
   flex-direction: column;
@@ -62,61 +142,65 @@
 }
 
 
+/* ===============================
+   CARD FLIP (READY)
+================================*/
 .cardContainer {
   width: 160px;
   height: 100px;
   position: relative;
 }
 
-
 .cardWrapper {
   width: 160px;
   height: 100px;
+
   transform: rotate(90deg);
   transform-origin: center center;
+
   position: absolute;
   top: 0;
   left: 0;
 }
 
-
 .card {
   width: 120px;
   height: 180px;
+
   position: absolute;
   top: 50%;
   left: 50%;
+
   transform: translate(-50%, -50%);
 }
-
 
 .card-inner {
   width: 100%;
   height: 100%;
+
   transition: transform 0.6s;
   transform-style: preserve-3d;
 }
 
-
 .card.flipped .card-inner {
   transform: rotateY(180deg);
 }
+
 .card-front,
 .card-back {
   width: 100%;
   height: 100%;
+
   border-radius: 12px;
   border: 4px solid #000;
+
   backface-visibility: hidden;
   position: absolute;
   overflow: hidden;
 }
-.card-front {
-  background: #fff;
-}
+
 .card-back {
   transform: rotateY(180deg);
-  background: #fff;
 }
 
 .card-front img,
@@ -124,4 +208,22 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+
+.zoom-wrapper {
+  width: 500px;
+  height: 650px;
+  overflow: hidden;
+  border-radius: 10px;
+  position: relative;
+  margin: auto;
+}
+
+.zoom-follow-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.15s ease-out;
+  cursor: zoom-in;
 }

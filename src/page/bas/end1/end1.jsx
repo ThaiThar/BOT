@@ -1,4 +1,3 @@
-import { useState } from "react";
 import Swal from "sweetalert2";
 import "./end1style.css";
 import myPic from "../../../assets/backcard.jpg";
@@ -9,12 +8,60 @@ import { discardCard } from "./functions/discardCard";
 import { viewDeck } from "./functions/viewDeck";
 import { drawCard } from "./functions/drawCard";
 import { showPreviewSwal } from "./functions/showPreviewSwal";
-import { returnToDeck } from "./functions/returnToDeck";
 
-function End1({ onDrawCard }) {
-  const [deckCards, setDeckCards] = useState([]);
-  const [endCards, setEndCards] = useState([]);
-  const [end2Cards, setEnd2Cards] = useState([]);
+function End1({
+  onDrawCard,
+  deckCards,
+  setDeckCards,
+  end1Cards,
+  setEnd1Cards,
+  end2Cards,
+  setEnd2Cards,
+}) {
+
+  const returnToDeck = (img, index, zone) => {
+    Swal.fire({
+      title: "เลือกการกระทำ",
+      html: `
+        <button class="zone-btn" id="btnDeck">📥 กลับเข้ากอง</button>
+        <button class="zone-btn" id="btnEnd1">🔥 ไป END1</button>
+        <button class="zone-btn" id="btnEnd2">💀 ไป END2</button>
+      `,
+      showConfirmButton: false,
+      width: 300,
+      background: "#222",
+      color: "#fff",
+    });
+
+    setTimeout(() => {
+      const removeFromZone = () => {
+        if (zone === "end") {
+          setEnd1Cards((prev) => prev.filter((_, i) => i !== index));
+        }
+        if (zone === "end2") {
+          setEnd2Cards((prev) => prev.filter((_, i) => i !== index));
+        }
+      };
+
+      document.getElementById("btnDeck").onclick = () => {
+        removeFromZone();
+        setDeckCards((prev) => [...prev, img]);
+        Swal.close();
+      };
+
+      document.getElementById("btnEnd1").onclick = () => {
+        removeFromZone();
+        setEnd1Cards((prev) => [...prev, img]);
+        Swal.close();
+      };
+
+      document.getElementById("btnEnd2").onclick = () => {
+        removeFromZone();
+        setEnd2Cards((prev) => [...prev, img]);
+        Swal.close();
+      };
+    }, 30);
+  };
 
   return (
     <div>
@@ -37,81 +84,52 @@ function End1({ onDrawCard }) {
 
       <div className="enddeck">
         <div className="deck">
-          <img src={myPic} className="deckSingleImg" alt="deck card" />
+          <img src={myPic} className="deckSingleImg" />
 
           <div className="deck-buttom">
             <div className="deckcard">
-              {/* ดูเด็ค */}
-              <div
-                className="buttomdeckcard select"
-                onClick={() => viewDeck(deckCards)}
-              >
+
+              <div className="buttomdeckcard select"
+                onClick={() => viewDeck(deckCards)}>
                 เลือกการ์ด
               </div>
 
-              {/* ทิ้งการ์ด */}
-              <div
-                className="buttomdeckcard discard"
+              <div className="buttomdeckcard discard"
                 onClick={() =>
-                  discardCard(
-                    deckCards,
-                    setDeckCards,
-                    setEndCards,
-                    setEnd2Cards
-                  )
-                }
-              >
+                  discardCard(deckCards, setDeckCards, setEnd1Cards, setEnd2Cards)
+                }>
                 ทิ้งการ์ด
               </div>
 
-              {/* จั่วการ์ด */}
-              <div
-                className="buttomdeckcard jua"
-                onClick={() => drawCard(deckCards, setDeckCards, onDrawCard)}
-              >
+              <div className="buttomdeckcard jua"
+                onClick={() => drawCard(deckCards, setDeckCards, onDrawCard)}>
                 จั่วการ์ด
               </div>
 
-              {/* สับการ์ด */}
-              <div
-                className="buttomdeckcard shuffle"
-                onClick={() => shuffleCards(deckCards, setDeckCards)}
-              >
+              <div className="buttomdeckcard shuffle"
+                onClick={() => shuffleCards(deckCards, setDeckCards)}>
                 สับการ์ด
               </div>
 
-              <div className="buttomdeckcard snoop">สอดแนม</div>
-              <div className="buttomdeckcard down">ใต้กอง</div>
             </div>
           </div>
         </div>
 
+        {/* END1 */}
         <div className="end">
           <div className="endzone-cards">
-            {endCards.map((img, i) => (
+            {end1Cards.map((img, i) => (
               <img
                 key={i}
                 src={img}
                 className="endcard-img"
-                style={{ "--r": Math.random() }}
-                onClick={() =>
-                  returnToDeck(
-                    img,
-                    i,
-                    "end",
-                    deckCards,
-                    setDeckCards,
-                    endCards,
-                    setEndCards,
-                    end2Cards,
-                    setEnd2Cards
-                  )
-                }
+                onClick={() => returnToDeck(img, i, "end")}
               />
             ))}
           </div>
         </div>
 
+        {/* END2 */}
         <div className="end2">
           <div className="endzone-cards">
             {end2Cards.map((img, i) => (
@@ -119,24 +137,12 @@ function End1({ onDrawCard }) {
                 key={i}
                 src={img}
                 className="endcard-img"
-                style={{ "--r": Math.random() }}
-                onClick={() =>
-                  returnToDeck(
-                    img,
-                    i,
-                    "end2",
-                    deckCards,
-                    setDeckCards,
-                    endCards,
-                    setEndCards,
-                    end2Cards,
-                    setEnd2Cards
-                  )
-                }
+                onClick={() => returnToDeck(img, i, "end2")}
               />
             ))}
           </div>
         </div>
+
       </div>
     </div>
   );
