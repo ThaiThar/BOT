@@ -25,6 +25,7 @@ function Center({
     Swal.fire({
       title: "เลือกสิ่งที่ต้องการทำ",
       html: `
+      <img src=${img} width="500px" />
         <button class="zone-btn" id="btnHand">🖐 คืนเข้ามือ</button>
         <button class="zone-btn" id="btnEnd1">🔥 ทิ้งไป END1</button>
         <button class="zone-btn" id="btnEnd2">💀 ทิ้งไป END2</button>
@@ -33,8 +34,8 @@ function Center({
       showConfirmButton: false,
       background: "#222",
       color: "#fff",
-      width: 300,
-      allowOutsideClick: false,
+      width: 550,
+      allowOutsideClick: true,
     });
 
     setTimeout(() => {

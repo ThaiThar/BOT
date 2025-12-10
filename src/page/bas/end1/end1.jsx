@@ -23,10 +23,15 @@ function End1({
     Swal.fire({
       title: "เลือกการกระทำ",
       html: `
-        <button class="zone-btn" id="btnDeck">📥 กลับเข้ากอง</button>
-        <button class="zone-btn" id="btnEnd1">🔥 ไป END1</button>
-        <button class="zone-btn" id="btnEnd2">💀 ไป END2</button>
-      `,
+      <div style="margin-bottom:15px;">
+          <img src="${img}" 
+            style="width:180px; border-radius:10px; border:2px solid #fff;" />
+      </div>
+
+      <button class="zone-btn" id="btnDeck">📥 กลับเข้ากอง</button>
+      <button class="zone-btn" id="btnEnd1">🔥 ไป END1</button>
+      <button class="zone-btn" id="btnEnd2">💀 ไป END2</button>
+    `,
       showConfirmButton: false,
       width: 300,
       background: "#222",
@@ -60,8 +65,9 @@ function End1({
         setEnd2Cards((prev) => [...prev, img]);
         Swal.close();
       };
-    }, 30);
+    }, 20);
   };
+
 
   return (
     <div>
