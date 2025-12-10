@@ -8,6 +8,8 @@ import { discardCard } from "./functions/discardCard";
 import { viewDeck } from "./functions/viewDeck";
 import { drawCard } from "./functions/drawCard";
 import { showPreviewSwal } from "./functions/showPreviewSwal";
+import { snoopCards } from "./functions/snoopCards";
+
 
 function End1({
   onDrawCard,
@@ -84,6 +86,8 @@ function End1({
     }, 20);
   };
 
+  
+
 
 
   return (
@@ -135,6 +139,12 @@ function End1({
                 onClick={() => shuffleCards(deckCards, setDeckCards)}>
                 สับการ์ด
               </div>
+              <div className="buttomdeckcard snoop"
+                onClick={() => snoopCards(deckCards, setDeckCards, setHandCards)}>
+                สอดแนม
+              </div>
+
+
 
             </div>
           </div>
