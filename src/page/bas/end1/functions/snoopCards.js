@@ -2,9 +2,9 @@ import Swal from "sweetalert2";
 
 /**
  * ฟังก์ชันสอดแนมการ์ด
- * @param {Array} deckCards - กองการ์ดทั้งหมด
- * @param {Function} setDeckCards - setter อัปเดตกอง
- * @param {Function} setHandCards - setter เพิ่มเข้ามือ
+ * @param {Array} deckCards
+ * @param {Function} setDeckCards
+ * @param {Function} setHandCards
  */
 export function snoopCards(deckCards, setDeckCards, setHandCards) {
   if (!deckCards || deckCards.length === 0) {
@@ -16,8 +16,8 @@ export function snoopCards(deckCards, setDeckCards, setHandCards) {
     input: "number",
     inputAttributes: { min: 1, max: deckCards.length },
     inputPlaceholder: "จำนวนการ์ดที่ต้องการดู",
-    confirmButtonText: "สอดแนม",
-  }).then(res => {
+    confirmButtonText: "ตกลง",
+  }).then((res) => {
     if (!res.isConfirmed) return;
 
     let count = parseInt(res.value);
@@ -27,10 +27,10 @@ export function snoopCards(deckCards, setDeckCards, setHandCards) {
       return Swal.fire("❌ ในกองมีการ์ดไม่พอ");
     }
 
-    const peekCards = deckCards.slice(0, count); // การ์ดที่ดึงมาดู
+    const peekCards = deckCards.slice(0, count);
 
     const html = `
-      <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px;">
+      <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:15px;">
         ${peekCards
           .map(
             (img, i) => `
@@ -44,6 +44,11 @@ export function snoopCards(deckCards, setDeckCards, setHandCards) {
           )
           .join("")}
       </div>
+
+      <button id="btnSkip" style="
+        width:100%; padding:10px; border-radius:8px;
+        background:#444; color:#fff; border:2px solid #888; cursor:pointer;
+      ">ไม่เลือก (ส่งลงใต้กองทั้งหมด)</button>
     `;
 
     Swal.fire({
@@ -55,8 +60,27 @@ export function snoopCards(deckCards, setDeckCards, setHandCards) {
       color: "#fff",
     });
 
-    // ให้ Swal แสดงผลก่อน แล้วผูก onclick
     setTimeout(() => {
+      // -------------------------------
+      // ✔ กดไม่เลือก → การ์ดทั้งหมดลงใต้กอง
+      // -------------------------------
+      const skipBtn = document.getElementById("btnSkip");
+      skipBtn.onclick = () => {
+        Swal.close();
+
+        const updatedDeck = [
+          ...deckCards.slice(count), // ลบใบที่ดู
+          ...peekCards,              // ย้ายลงท้ายกอง
+        ];
+
+        setDeckCards(updatedDeck);
+
+        Swal.fire("✔ ส่งลงใต้กองทั้งหมดแล้ว", "", "success");
+      };
+
+      // -------------------------------
+      // ✔ เลือกปกติ → ใบที่เลือก เข้ามือ
+      // -------------------------------
       document.querySelectorAll(".snoop-card").forEach((el) => {
         el.onclick = () => {
           const index = parseInt(el.dataset.index);
@@ -65,15 +89,14 @@ export function snoopCards(deckCards, setDeckCards, setHandCards) {
           Swal.close();
 
           // ใบที่เลือก → มือ
-          setHandCards(prev => [...prev, chosen]);
+          setHandCards((prev) => [...prev, chosen]);
 
-          // ใบที่เหลือ → ใต้กอง
+          // ใบที่ไม่ได้เลือก → ใต้กอง
           const leftover = peekCards.filter((_, i) => i !== index);
 
-          // อัปเดต deck → (ตัด peek ออก) + leftover ไปท้าย
           const updatedDeck = [
             ...deckCards.slice(count),
-            ...leftover
+            ...leftover,
           ];
 
           setDeckCards(updatedDeck);
