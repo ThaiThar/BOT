@@ -25,7 +25,6 @@ function End1({
   resetGame,
 }) {
 
-
   // 🔥 บอกว่ามีการเลือกครบ 50 ใบแล้วหรือยัง
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -47,7 +46,8 @@ function End1({
       }
     });
   };
-  // 🔥 ย้ายการ์ดกลับไป zone ต่างๆ
+
+  // 🔥 ย้ายการ์ดกลับไป zone ต่างๆ (ปรับปรุงใหม่ใช้ didOpen)
   const returnToDeck = (img, index, zone) => {
     Swal.fire({
       title: "เลือกการกระทำ",
@@ -57,51 +57,55 @@ function End1({
           style="width:180px; border-radius:10px; border:2px solid #fff;" />
       </div>
 
-      <button class="zone-btn" id="btnHand">🖐 คืนเข้ามือ</button>
-      <button class="zone-btn" id="btnDeck">📥 กลับเข้ากอง</button>
-      <button class="zone-btn" id="btnEnd1">🔥 ไป END1</button>
-      <button class="zone-btn" id="btnEnd2">💀 ไป END2</button>
+      <div style="display: flex; flex-direction: column; gap: 5px;">
+        <button class="zone-btn" id="btnHand">🖐 คืนเข้ามือ</button>
+        <button class="zone-btn" id="btnDeck">📥 กลับเข้ากอง</button>
+        <button class="zone-btn" id="btnEnd1">🔥 ไป END1</button>
+        <button class="zone-btn" id="btnEnd2">💀 ไป END2</button>
+      </div>
     `,
       showConfirmButton: false,
       width: 300,
       background: "#222",
       color: "#fff",
+      // ✅ ใช้ didOpen แทน setTimeout เพื่อความเสถียร
+      didOpen: () => {
+        const modal = Swal.getHtmlContainer();
+        
+        const removeFromZone = () => {
+          if (zone === "end") {
+            setEnd1Cards((prev) => prev.filter((_, i) => i !== index));
+          } else if (zone === "end2") {
+            setEnd2Cards((prev) => prev.filter((_, i) => i !== index));
+          }
+        };
+
+        // ผูก Event Listener กับปุ่มต่างๆ
+        modal.querySelector("#btnHand").addEventListener("click", () => {
+          removeFromZone();
+          setHandCards((prev) => [...prev, img]);
+          Swal.close();
+        });
+
+        modal.querySelector("#btnDeck").addEventListener("click", () => {
+          removeFromZone();
+          setDeckCards((prev) => [...prev, img]);
+          Swal.close();
+        });
+
+        modal.querySelector("#btnEnd1").addEventListener("click", () => {
+          removeFromZone();
+          setEnd1Cards((prev) => [...prev, img]);
+          Swal.close();
+        });
+
+        modal.querySelector("#btnEnd2").addEventListener("click", () => {
+          removeFromZone();
+          setEnd2Cards((prev) => [...prev, img]);
+          Swal.close();
+        });
+      }
     });
-
-    setTimeout(() => {
-      const removeFromZone = () => {
-        if (zone === "end") {
-          setEnd1Cards((prev) => prev.filter((_, i) => i !== index));
-        }
-        if (zone === "end2") {
-          setEnd2Cards((prev) => prev.filter((_, i) => i !== index));
-        }
-      };
-
-      document.getElementById("btnHand").onclick = () => {
-        removeFromZone();
-        setHandCards((prev) => [...prev, img]);
-        Swal.close();
-      };
-
-      document.getElementById("btnDeck").onclick = () => {
-        removeFromZone();
-        setDeckCards((prev) => [...prev, img]);
-        Swal.close();
-      };
-
-      document.getElementById("btnEnd1").onclick = () => {
-        removeFromZone();
-        setEnd1Cards((prev) => [...prev, img]);
-        Swal.close();
-      };
-
-      document.getElementById("btnEnd2").onclick = () => {
-        removeFromZone();
-        setEnd2Cards((prev) => [...prev, img]);
-        Swal.close();
-      };
-    }, 20);
   };
 
 
@@ -123,12 +127,14 @@ function End1({
               accept="image/*"
               multiple
               style={{ display: "none" }}
-              onChange={(e) =>
+              onChange={(e) => {
                 handleChooseCards(e.target.files, (imgs) => {
                   showPreviewSwal(imgs, setDeckCards);
                   setIsLoaded(true); // 🔥 หลังเลือกครบ เปลี่ยนเป็นปุ่ม reset
-                })
-              }
+                });
+                // ✅ เคลียร์ค่า input เพื่อให้เลือกไฟล์เดิมซ้ำได้กรณี Reset
+                e.target.value = null;
+              }}
             />
           </label>
         )}
@@ -136,7 +142,7 @@ function End1({
 
       <div className="enddeck">
         <div className="deck">
-          <img src={myPic} className="deckSingleImg" />
+          <img src={myPic} className="deckSingleImg" alt="Back Card" />
 
           <div className="deck-buttom">
             <div className="deckcard">
@@ -193,6 +199,7 @@ function End1({
                 src={img}
                 className="endcard-img"
                 onClick={() => returnToDeck(img, i, "end")}
+                alt={`End1-${i}`}
               />
             ))}
           </div>
@@ -207,6 +214,7 @@ function End1({
                 src={img}
                 className="endcard-img"
                 onClick={() => returnToDeck(img, i, "end2")}
+                alt={`End2-${i}`}
               />
             ))}
           </div>
