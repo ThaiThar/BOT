@@ -10,6 +10,7 @@ import { drawCard } from "./functions/drawCard";
 import { showPreviewSwal } from "./functions/showPreviewSwal";
 import { snoopCards } from "./functions/snoopCards";
 
+import { useState } from "react";
 
 function End1({
   onDrawCard,
@@ -20,9 +21,33 @@ function End1({
   end2Cards,
   setEnd2Cards,
   handCards,
-  setHandCards
+  setHandCards,
+  resetGame,
 }) {
 
+
+  // 🔥 บอกว่ามีการเลือกครบ 50 ใบแล้วหรือยัง
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  // 🔥 รีเซตเกมทั้งหมด
+  const resetLocal = () => {
+    Swal.fire({
+      title: "รีเซตเกมใหม่?",
+      text: "การ์ดทุกใบจะถูกล้างทั้งหมด",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "ใช่ รีเซตเลย",
+      cancelButtonText: "ยกเลิก"
+    }).then((res) => {
+      if (res.isConfirmed) {
+        resetGame();        // ✔ รีเซตทุก state ใน Bas.jsx
+        setIsLoaded(false); // ✔ กลับเป็นเลือกการ์ดใหม่
+        
+        Swal.fire("รีเซตสำเร็จ!", "", "success");
+      }
+    });
+  };
+  // 🔥 ย้ายการ์ดกลับไป zone ต่างๆ
   const returnToDeck = (img, index, zone) => {
     Swal.fire({
       title: "เลือกการกระทำ",
@@ -44,8 +69,6 @@ function End1({
     });
 
     setTimeout(() => {
-
-      // 🍀 ฟังก์ชันลบใบเดิมออกจาก zone
       const removeFromZone = () => {
         if (zone === "end") {
           setEnd1Cards((prev) => prev.filter((_, i) => i !== index));
@@ -55,58 +78,60 @@ function End1({
         }
       };
 
-      // 🖐 คืนเข้ามือ
       document.getElementById("btnHand").onclick = () => {
         removeFromZone();
         setHandCards((prev) => [...prev, img]);
         Swal.close();
       };
 
-      // 📥 กลับเข้ากอง
       document.getElementById("btnDeck").onclick = () => {
         removeFromZone();
         setDeckCards((prev) => [...prev, img]);
         Swal.close();
       };
 
-      // 🔥 ไป END1
       document.getElementById("btnEnd1").onclick = () => {
         removeFromZone();
         setEnd1Cards((prev) => [...prev, img]);
         Swal.close();
       };
 
-      // 💀 ไป END2
       document.getElementById("btnEnd2").onclick = () => {
         removeFromZone();
         setEnd2Cards((prev) => [...prev, img]);
         Swal.close();
       };
-
     }, 20);
   };
-
-  
-
 
 
   return (
     <div>
+
+      {/* 🔥 ปุ่มเลือกการ์ด หรือ ปุ่ม Reset */}
       <div style={{ marginBottom: "5px", textAlign: "center" }}>
-        <label className="select-file-btn">
-          เลือกการ์ดทั้งหมด (50 ใบ)
-          <input
-            type="file"
-            accept="image/*"
-            multiple
-            style={{ display: "none" }}
-            onChange={(e) =>
-              handleChooseCards(e.target.files, (imgs) =>
-                showPreviewSwal(imgs, setDeckCards)
-              )
-            }
-          />
-        </label>
+        {isLoaded ? (
+          <button className="select-file-btn" onClick={resetLocal}>
+            🔄 รีเซตเกมใหม่
+          </button>
+
+        ) : (
+          <label className="select-file-btn">
+            เลือกการ์ดทั้งหมด (50 ใบ)
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              style={{ display: "none" }}
+              onChange={(e) =>
+                handleChooseCards(e.target.files, (imgs) => {
+                  showPreviewSwal(imgs, setDeckCards);
+                  setIsLoaded(true); // 🔥 หลังเลือกครบ เปลี่ยนเป็นปุ่ม reset
+                })
+              }
+            />
+          </label>
+        )}
       </div>
 
       <div className="enddeck">
@@ -123,28 +148,37 @@ function End1({
                 เลือกการ์ด
               </div>
 
-              <div className="buttomdeckcard discard"
+              <div
+                className="buttomdeckcard discard"
                 onClick={() =>
                   discardCard(deckCards, setDeckCards, setEnd1Cards, setEnd2Cards)
-                }>
+                }
+              >
                 ทิ้งการ์ด
               </div>
 
-              <div className="buttomdeckcard jua"
-                onClick={() => drawCard(deckCards, setDeckCards, onDrawCard)}>
+              <div
+                className="buttomdeckcard jua"
+                onClick={() => drawCard(deckCards, setDeckCards, onDrawCard)}
+              >
                 จั่วการ์ด
               </div>
 
-              <div className="buttomdeckcard shuffle"
-                onClick={() => shuffleCards(deckCards, setDeckCards)}>
+              <div
+                className="buttomdeckcard shuffle"
+                onClick={() => shuffleCards(deckCards, setDeckCards)}
+              >
                 สับการ์ด
               </div>
-              <div className="buttomdeckcard snoop"
-                onClick={() => snoopCards(deckCards, setDeckCards, setHandCards)}>
+
+              <div
+                className="buttomdeckcard snoop"
+                onClick={() =>
+                  snoopCards(deckCards, setDeckCards, setHandCards)
+                }
+              >
                 สอดแนม
               </div>
-
-
 
             </div>
           </div>

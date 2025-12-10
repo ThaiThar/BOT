@@ -19,6 +19,18 @@ function Bas() {
     setHandCards((prev) => [...prev, card]);
   };
 
+  // 🔥 ฟังก์ชันรีเซตเกมทั้งหมด (ทุกหน้า)
+  const resetGame = () => {
+    setHandCards([]);
+    setMagicSlots([null, null, null, null]);
+    setAvatarSlots([null, null, null, null]);
+    setModSlots([[], [], [], []]);
+    setEnd1Cards([]);
+    setEnd2Cards([]);
+    setDeckCards([]);
+    setAvatarRotation([0, 0, 0, 0]);
+  };
+
   return (
     <div className="fillborad">
       <HandButton
@@ -35,7 +47,6 @@ function Bas() {
         end2Cards={end2Cards}
         setEnd2Cards={setEnd2Cards}
       />
-
 
       <div style={{ display: "flex" }}>
         <div className="start">
@@ -71,8 +82,11 @@ function Bas() {
             setEnd2Cards={setEnd2Cards}
             handCards={handCards}
             setHandCards={setHandCards}
-          />
+            
 
+            // 🔥 ส่ง resetGame ลงไปให้ End1 
+            resetGame={resetGame}
+          />
         </div>
       </div>
     </div>
