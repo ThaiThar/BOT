@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import Swal from "sweetalert2";
 import "./centerstyle.css";
 
@@ -15,8 +15,20 @@ function Center({
   end2Cards,
   setEnd2Cards,
   deckCards,
-  setDeckCards
+  setDeckCards,
 }) {
+  // 🔁 มุมหมุนของ avatar แต่ละช่อง (เริ่ม 0 องศา)
+  const [avatarRotation, setAvatarRotation] = useState(
+    Array(avatarSlots.length).fill(0)
+  );
+
+  const rotateAvatar = (index) => {
+    setAvatarRotation((prev) => {
+      const next = [...prev];
+      next[index] = next[index] === 0 ? 90 : 0;
+      return next;
+    });
+  };
 
   // -----------------------------
   // 🔷 เมนูเลือกการกระทำ (Swal)
@@ -25,7 +37,7 @@ function Center({
     Swal.fire({
       title: "เลือกสิ่งที่ต้องการทำ",
       html: `
-      <img src=${img} width="500px" />
+        <img src="${img}" style="width:500px; border-radius:10px; margin-bottom:12px; border:2px solid #fff;" />
         <button class="zone-btn" id="btnHand">🖐 คืนเข้ามือ</button>
         <button class="zone-btn" id="btnEnd1">🔥 ทิ้งไป END1</button>
         <button class="zone-btn" id="btnEnd2">💀 ทิ้งไป END2</button>
@@ -80,19 +92,10 @@ function Center({
     if (!card) return;
 
     chooseAction(card, (action) => {
-
-      if (action === "hand") {
-        setHandCards(prev => [...prev, card]);
-      }
-      if (action === "end1") {
-        setEnd1Cards(prev => [...prev, card]);
-      }
-      if (action === "end2") {
-        setEnd2Cards(prev => [...prev, card]);
-      }
-      if (action === "deck") {
-        setDeckCards(prev => [...prev, card]);
-      }
+      if (action === "hand") setHandCards((prev) => [...prev, card]);
+      if (action === "end1") setEnd1Cards((prev) => [...prev, card]);
+      if (action === "end2") setEnd2Cards((prev) => [...prev, card]);
+      if (action === "deck") setDeckCards((prev) => [...prev, card]);
 
       const updated = [...magicSlots];
       updated[index] = null;
@@ -101,26 +104,42 @@ function Center({
   };
 
   // -----------------------------
-  // 🟢 คืนการ์ดจาก Avatar
+  // 🟢 คืนการ์ดจาก Avatar (+ mods ติดไปด้วย)
   // -----------------------------
   const returnCardFromAvatar = (index) => {
-    const card = avatarSlots[index];
-    if (!card) return;
+    const avatarCard = avatarSlots[index];
+    if (!avatarCard) return;
 
-    chooseAction(card, (action) => {
+    const modsOfThisAvatar = modSlots[index] || [];
 
-      if (action === "hand") setHandCards(prev => [...prev, card]);
-      if (action === "end1") setEnd1Cards(prev => [...prev, card]);
-      if (action === "end2") setEnd2Cards(prev => [...prev, card]);
-      if (action === "deck") setDeckCards(prev => [...prev, card]);
+    chooseAction(avatarCard, (action) => {
+      if (action === "hand") {
+        setHandCards((prev) => [...prev, avatarCard, ...modsOfThisAvatar]);
+      }
+      if (action === "end1") {
+        setEnd1Cards((prev) => [...prev, avatarCard, ...modsOfThisAvatar]);
+      }
+      if (action === "end2") {
+        setEnd2Cards((prev) => [...prev, avatarCard, ...modsOfThisAvatar]);
+      }
+      if (action === "deck") {
+        setDeckCards((prev) => [...prev, avatarCard, ...modsOfThisAvatar]);
+      }
 
-      const updated = [...avatarSlots];
-      updated[index] = null;
-      setAvatarSlots(updated);
+      const updatedAv = [...avatarSlots];
+      updatedAv[index] = null;
+      setAvatarSlots(updatedAv);
 
-      const newMod = [...modSlots];
-      newMod[index] = [];
-      setModSlots(newMod);
+      const updatedMods = [...modSlots];
+      updatedMods[index] = [];
+      setModSlots(updatedMods);
+
+      // รีเซ็ตมุมหมุนของช่องนี้ด้วย (ถ้าต้องการ)
+      setAvatarRotation((prev) => {
+        const next = [...prev];
+        next[index] = 0;
+        return next;
+      });
     });
   };
 
@@ -132,11 +151,10 @@ function Center({
     if (!card) return;
 
     chooseAction(card, (action) => {
-
-      if (action === "hand") setHandCards(prev => [...prev, card]);
-      if (action === "end1") setEnd1Cards(prev => [...prev, card]);
-      if (action === "end2") setEnd2Cards(prev => [...prev, card]);
-      if (action === "deck") setDeckCards(prev => [...prev, card]);
+      if (action === "hand") setHandCards((prev) => [...prev, card]);
+      if (action === "end1") setEnd1Cards((prev) => [...prev, card]);
+      if (action === "end2") setEnd2Cards((prev) => [...prev, card]);
+      if (action === "deck") setDeckCards((prev) => [...prev, card]);
 
       const updated = [...modSlots];
       updated[avatarIndex] = updated[avatarIndex].filter((_, i) => i !== modIndex);
@@ -147,6 +165,52 @@ function Center({
   return (
     <div className="boxcenter">
 
+
+      {/* AVATAR + MODS */}
+      <div className="avatar-row">
+        {avatarSlots.map((avatarImg, i) => (
+          <div key={i} className="avatar-block">
+            <div
+              className="avatarcenter"
+              style={{
+                background: avatarRotation[i] !== 0 ? "none" : "white",
+                transition: "0.25s",
+              }}
+            >
+              {avatarImg && (
+                <div className="avatar-img-wrapper">
+                  <img
+                    src={avatarImg}
+                    className="avatar-img"
+                    onClick={() => returnCardFromAvatar(i)}
+                    onContextMenu={(e) => {
+                      e.preventDefault();
+                      rotateAvatar(i);
+                    }}
+                    style={{
+                      transform: `rotate(${avatarRotation[i]}deg)`,
+                      transition: "0.25s ease",
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+
+
+
+            <div className="modificationcard-wrapper">
+              {modSlots[i].map((modImg, idx) => (
+                <img
+                  key={idx}
+                  src={modImg}
+                  className="mod-img"
+                  onClick={() => returnCardFromMod(i, idx)}
+                />
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
       {/* MAGIC ZONE */}
       <div className="centermagic">
         {magicSlots.map((img, i) => (
@@ -161,38 +225,6 @@ function Center({
           </div>
         ))}
       </div>
-
-      {/* MOD ZONE */}
-      <div className="modification">
-        {modSlots.map((mods, slotIndex) => (
-          <div key={slotIndex} className="modificationcard-wrapper">
-            {mods.map((img, idx) => (
-              <img
-                key={idx}
-                src={img}
-                className="mod-img"
-                onClick={() => returnCardFromMod(slotIndex, idx)}
-              />
-            ))}
-          </div>
-        ))}
-      </div>
-
-      {/* AVATAR ZONE */}
-      <div className="centeravatar">
-        {avatarSlots.map((img, i) => (
-          <div key={i} className="avatarcenter">
-            {img && (
-              <img
-                src={img}
-                className="center-img"
-                onClick={() => returnCardFromAvatar(i)}
-              />
-            )}
-          </div>
-        ))}
-      </div>
-
     </div>
   );
 }

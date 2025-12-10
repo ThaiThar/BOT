@@ -7,8 +7,9 @@ import './App.css'
 function App() {
   return (
     <div className='borad'>
+       <Battle />
       <Bas />
-      <Battle />
+     
       {/* <Mos /> */}
     </div>
   )

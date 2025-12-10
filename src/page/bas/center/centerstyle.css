@@ -1,53 +1,95 @@
-.boxcenter{
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    width: 1000px;
-    height: 650px;
-    background-color: rgb(87, 216, 255);
-    flex-direction: column;
+/* ======= กล่องหลัก ======= */
+.boxcenter {
+  display: flex;
+  flex-direction: column; /* เรียงบน→ล่าง */
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  padding: 5px;
+  background: rgb(87, 216, 255);
+  gap: 100px;
 }
-.centermagic{
-    display: flex;
+
+/* ======= MAGIC ZONE ======= */
+.centermagic {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
 }
-.centeravatar{
-    display: flex;
+
+.magiccenter {
+  width: 120px;
+  height: 160px;
+  background: #000;
+  border-radius: 8px;
 }
-.magiccenter{
-    background-color: rgb(0, 0, 0);
-    width: 180px;
-    height: 250px;
-    margin: 10px;
-    border-radius: 10px;
+
+/* ======= AVATAR BLOCK (Avatar + Mods) ======= */
+.avatar-row {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0 10px;
 }
-.avatarcenter{
-    background-color: rgb(255, 255, 255);
-    width: 180px;
-    height: 250px;
-    margin: 10px;
-    border-radius: 10px;
+
+.avatar-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 24%; /* 4 ช่อง */
+  gap: 8px;
 }
-.modification{
-    display: flex;
+
+/* Avatar Card */
+.avatarcenter {
+  width: 180px;
+  height: 250px;
+  background: white;
+  border-radius: 10px;
+  position: relative; /* สำคัญ */
+  overflow:visible; /* กันภาพล้น */
 }
-.modificationcard{
-    background-color: rgb(255, 255, 255);
-    width: 180px;
-    height: 30px;
-    margin: 10px;
-    border-radius: 10px;
+.avatar-img-wrapper {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
+
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 10px;
+  pointer-events: auto;
+}
+
 .center-img {
-    width: 100%;
-    height: 100%;
-    border-radius: 8px;
-    border: 2px solid #000;
-    object-fit: cover;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 2px solid #000;
+}
+
+/* Mods ใต้ Avatar */
+.modificationcard-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 5px;
+  width: 100%;
+  min-height: 40px;
 }
 
 .mod-img {
-    width: 60px;
-    margin: 3px;
-    border: 2px solid #222;
-    border-radius: 5px;
+  width: 40px;
+  height: 60px;
+  border-radius: 5px;
+  border: 2px solid #222;
+  cursor: pointer;
 }

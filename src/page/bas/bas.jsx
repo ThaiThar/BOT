@@ -13,6 +13,7 @@ function Bas() {
   const [end1Cards, setEnd1Cards] = useState([]);
   const [end2Cards, setEnd2Cards] = useState([]);
   const [deckCards, setDeckCards] = useState([]);
+  const [avatarRotation, setAvatarRotation] = useState([0,0,0,0]);
 
   const handleDrawCard = (card) => {
     setHandCards((prev) => [...prev, card]);
