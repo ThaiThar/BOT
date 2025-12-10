@@ -5,7 +5,15 @@ import Center from "./center/center.jsx";
 import End1 from "./end1/end1.jsx";
 import HandButton from "./hand/HandButton.jsx";
 
-function Bas({ playerId = "P1", socket, roomId, isEnemy = false }) {
+function Bas({ 
+  playerId = "P1", 
+  socket, 
+  roomId, 
+  isEnemy = false,
+  myRole,
+  enemyRole 
+}) {
+
   // --- State ทั้งหมด ---
   const [handCards, setHandCards] = useState([]);
   const [magicSlots, setMagicSlots] = useState([null, null, null, null]);
@@ -20,10 +28,11 @@ function Bas({ playerId = "P1", socket, roomId, isEnemy = false }) {
 
   // --- Helper: ส่งข้อมูลไป Server ---
   const broadcast = (actionType, payload) => {
+    // ✅ ให้เฉพาะกระดาน "ของเรา" เท่านั้นที่ส่งออกไป (isEnemy = false)
     if (!isEnemy && socket && roomId) {
       socket.emit("send_action", {
         roomId,
-        sender: playerId,
+        sender: playerId,   // โดยปกติจะเป็น myRole เช่น "P1" หรือ "P2"
         actionType,
         payload,
       });
@@ -100,18 +109,40 @@ function Bas({ playerId = "P1", socket, roomId, isEnemy = false }) {
     if (!socket) return;
 
     const handleReceiveAction = (data) => {
-      if (data.sender !== playerId) return;
+      // ✅ ให้ "เฉพาะกระดานศัตรู" (isEnemy = true) ที่อัปเดตจาก socket
+      // กระดานของเรา (isEnemy = false) ไม่ต้องฟัง socket เลย
+      if (!isEnemy) return;
+
+      // ✅ ฝั่งนี้คือกระดานศัตรู → ต้องฟังเฉพาะ action จาก enemyRole
+      if (data.sender !== enemyRole) return;
 
       switch (data.actionType) {
-        case "update_hand": setHandCards(data.payload); break;
-        case "update_magic": setMagicSlots(data.payload); break;
-        case "update_avatar": setAvatarSlots(data.payload); break;
-        case "update_mods": setModSlots(data.payload); break;
-        case "update_end1": setEnd1Cards(data.payload); break;
-        case "update_end2": setEnd2Cards(data.payload); break;
-        case "update_deck": setDeckCards(data.payload); break;
-        case "update_rotation": setAvatarRotation(data.payload); break;
-        default: break;
+        case "update_hand": 
+          setHandCards(data.payload); 
+          break;
+        case "update_magic": 
+          setMagicSlots(data.payload); 
+          break;
+        case "update_avatar": 
+          setAvatarSlots(data.payload); 
+          break;
+        case "update_mods": 
+          setModSlots(data.payload); 
+          break;
+        case "update_end1": 
+          setEnd1Cards(data.payload); 
+          break;
+        case "update_end2": 
+          setEnd2Cards(data.payload); 
+          break;
+        case "update_deck": 
+          setDeckCards(data.payload); 
+          break;
+        case "update_rotation": 
+          setAvatarRotation(data.payload); 
+          break;
+        default:
+          break;
       }
     };
 
@@ -120,8 +151,7 @@ function Bas({ playerId = "P1", socket, roomId, isEnemy = false }) {
     return () => {
       socket.off("receive_action", handleReceiveAction);
     };
-  }, [socket, playerId]);
-
+  }, [socket, enemyRole, isEnemy]);
 
   // --- Logic ---
   const handleDrawCard = (card) => {
@@ -147,7 +177,7 @@ function Bas({ playerId = "P1", socket, roomId, isEnemy = false }) {
   return (
     <div
       className="fillborad"
-      // 🔥🔥🔥 จุดนี้สำคัญที่สุด: สั่งปิดการคลิกทุกอย่างถ้าเป็น Enemy 🔥🔥🔥
+      // 🔥 ปิดการคลิกทุกอย่างถ้าเป็นกระดานศัตรู
       style={isEnemy ? { pointerEvents: "none", opacity: 0.9 } : {}}
     >
       <div style={{ textAlign: "center", marginBottom: 4 }}>
@@ -158,18 +188,18 @@ function Bas({ playerId = "P1", socket, roomId, isEnemy = false }) {
 
       <HandButton
         handCards={handCards}
-        setHandCards={updateHand}      
+        setHandCards={updateHand}
         magicSlots={magicSlots}
-        setMagicSlots={updateMagic}    
+        setMagicSlots={updateMagic}
         avatarSlots={avatarSlots}
-        setAvatarSlots={updateAvatar}  
+        setAvatarSlots={updateAvatar}
         modSlots={modSlots}
-        setModSlots={updateMods}       
+        setModSlots={updateMods}
         end1Cards={end1Cards}
-        setEnd1Cards={updateEnd1}      
+        setEnd1Cards={updateEnd1}
         end2Cards={end2Cards}
-        setEnd2Cards={updateEnd2} 
-        isEnemy={isEnemy}     
+        setEnd2Cards={updateEnd2}
+        isEnemy={isEnemy}
       />
 
       <div style={{ display: "flex" }}>
@@ -192,10 +222,9 @@ function Bas({ playerId = "P1", socket, roomId, isEnemy = false }) {
             setEnd2Cards={updateEnd2}
             deckCards={deckCards}
             setDeckCards={updateDeck}
-            
             avatarRotation={avatarRotation}
             setAvatarRotation={updateRotation}
-            isEnemy={isEnemy} // ✅ ส่ง isEnemy ไปให้ Center (ป้องกัน Logic ภายใน)
+            isEnemy={isEnemy}
           />
         </div>
 
@@ -203,16 +232,15 @@ function Bas({ playerId = "P1", socket, roomId, isEnemy = false }) {
           <End1
             onDrawCard={handleDrawCard}
             deckCards={deckCards}
-            setDeckCards={updateDeck}   
+            setDeckCards={updateDeck}
             end1Cards={end1Cards}
-            setEnd1Cards={updateEnd1}   
+            setEnd1Cards={updateEnd1}
             end2Cards={end2Cards}
-            setEnd2Cards={updateEnd2}   
+            setEnd2Cards={updateEnd2}
             handCards={handCards}
-            setHandCards={updateHand}   
+            setHandCards={updateHand}
             resetGame={resetGame}
-            
-            isEnemy={isEnemy} // ✅ เพิ่มบรรทัดนี้: ส่ง isEnemy ไปให้ End1 ด้วย
+            isEnemy={isEnemy}
           />
         </div>
       </div>

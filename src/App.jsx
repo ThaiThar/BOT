@@ -13,23 +13,42 @@ function App() {
   const [role, setRole] = useState("");
 
   const joinRoom = () => {
-    if (roomId !== "") {
+    if (roomId.trim() !== "") {
       socket.emit("join_room", roomId);
     }
   };
 
   useEffect(() => {
-    socket.on("assign_role", (data) => {
+
+    const handleAssignRole = (data) => {
       setRole(data);
-    });
+    };
 
-    socket.on("start_game", () => {
+    const handleStartGame = () => {
       setIsInGame(true);
-    });
+    };
 
-    socket.on("room_full", () => {
-      alert("ห้องเต็มแล้ว!");
-    });
+    const handleRoomFull = () => {
+      alert("❌ ห้องเต็มแล้ว!");
+    };
+
+    const handleOpponentDisconnect = () => {
+      alert("⚠ ผู้เล่นอีกฝ่ายหลุดออกจากเกม");
+    };
+
+    socket.on("assign_role", handleAssignRole);
+    socket.on("start_game", handleStartGame);
+    socket.on("room_full", handleRoomFull);
+    socket.on("opponent_disconnected", handleOpponentDisconnect);
+
+    // Cleanup ป้องกัน listener ซ้อน
+    return () => {
+      socket.off("assign_role", handleAssignRole);
+      socket.off("start_game", handleStartGame);
+      socket.off("room_full", handleRoomFull);
+      socket.off("opponent_disconnected", handleOpponentDisconnect);
+    };
+
   }, []);
 
   return (
@@ -43,6 +62,7 @@ function App() {
             onChange={(event) => setRoomId(event.target.value)}
           />
           <button onClick={joinRoom}>Join Game</button>
+
           {role && <p>รอผู้เล่นอีกคน... (คุณคือ {role})</p>}
         </div>
       ) : (
