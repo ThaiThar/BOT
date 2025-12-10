@@ -58,6 +58,7 @@ export function snoopCards(deckCards, setDeckCards, setHandCards) {
       showConfirmButton: false,
       background: "#111",
       color: "#fff",
+          allowOutsideClick: false,
     });
 
     setTimeout(() => {
