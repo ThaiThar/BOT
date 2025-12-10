@@ -1,4 +1,5 @@
 import Swal from "sweetalert2";
+import { shuffleCards } from "./shuffleCards";   
 
 export function showPreviewSwal(images, setDeckCards) {
     Swal.fire({
@@ -22,8 +23,15 @@ export function showPreviewSwal(images, setDeckCards) {
         confirmButtonText: "ตกลง",
         width: "800px",
     }).then(() => {
+
         if (typeof setDeckCards === "function") {
+            //  เซ็ตการ์ดเข้าเด็คก่อน
             setDeckCards(images);
+
+            //  สับหลังจากเซ็ตเสร็จ
+            setTimeout(() => {
+                shuffleCards(images, setDeckCards);
+            }, 10);
         }
     });
 }
