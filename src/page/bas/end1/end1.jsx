@@ -17,6 +17,7 @@ function End1({
   setEnd1Cards,
   end2Cards,
   setEnd2Cards,
+  setHandCards,
 }) {
 
   const returnToDeck = (img, index, zone) => {
@@ -95,8 +96,10 @@ function End1({
           <div className="deck-buttom">
             <div className="deckcard">
 
-              <div className="buttomdeckcard select"
-                onClick={() => viewDeck(deckCards)}>
+              <div
+                className="buttomdeckcard select"
+                onClick={() => viewDeck(deckCards, setDeckCards, setHandCards)}
+              >
                 เลือกการ์ด
               </div>
 

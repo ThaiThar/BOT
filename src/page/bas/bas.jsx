@@ -64,6 +64,7 @@ function Bas() {
             setEnd2Cards={setEnd2Cards}
             deckCards={deckCards}
             setDeckCards={setDeckCards}
+            setHandCards={setHandCards}   
           />
         </div>
       </div>
