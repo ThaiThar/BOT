@@ -13,7 +13,7 @@ function Bas() {
   const [end1Cards, setEnd1Cards] = useState([]);
   const [end2Cards, setEnd2Cards] = useState([]);
   const [deckCards, setDeckCards] = useState([]);
-  const [avatarRotation, setAvatarRotation] = useState([0,0,0,0]);
+  const [avatarRotation, setAvatarRotation] = useState([0, 0, 0, 0]);
 
   const handleDrawCard = (card) => {
     setHandCards((prev) => [...prev, card]);
@@ -30,7 +30,12 @@ function Bas() {
         setAvatarSlots={setAvatarSlots}
         modSlots={modSlots}
         setModSlots={setModSlots}
+        end1Cards={end1Cards}
+        setEnd1Cards={setEnd1Cards}
+        end2Cards={end2Cards}
+        setEnd2Cards={setEnd2Cards}
       />
+
 
       <div style={{ display: "flex" }}>
         <div className="start">
@@ -58,14 +63,16 @@ function Bas() {
         <div className="end1">
           <End1
             onDrawCard={handleDrawCard}
+            deckCards={deckCards}
+            setDeckCards={setDeckCards}
             end1Cards={end1Cards}
             setEnd1Cards={setEnd1Cards}
             end2Cards={end2Cards}
             setEnd2Cards={setEnd2Cards}
-            deckCards={deckCards}
-            setDeckCards={setDeckCards}
-            setHandCards={setHandCards}   
+            handCards={handCards}
+            setHandCards={setHandCards}
           />
+
         </div>
       </div>
     </div>

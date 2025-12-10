@@ -17,18 +17,20 @@ function End1({
   setEnd1Cards,
   end2Cards,
   setEnd2Cards,
-  setHandCards,
+  handCards,
+  setHandCards
 }) {
 
   const returnToDeck = (img, index, zone) => {
     Swal.fire({
       title: "เลือกการกระทำ",
       html: `
-      <div style="margin-bottom:15px;">
-          <img src="${img}" 
-            style="width:180px; border-radius:10px; border:2px solid #fff;" />
+      <div style="margin-bottom:15px; text-align:center;">
+        <img src="${img}" 
+          style="width:180px; border-radius:10px; border:2px solid #fff;" />
       </div>
 
+      <button class="zone-btn" id="btnHand">🖐 คืนเข้ามือ</button>
       <button class="zone-btn" id="btnDeck">📥 กลับเข้ากอง</button>
       <button class="zone-btn" id="btnEnd1">🔥 ไป END1</button>
       <button class="zone-btn" id="btnEnd2">💀 ไป END2</button>
@@ -40,6 +42,8 @@ function End1({
     });
 
     setTimeout(() => {
+
+      // 🍀 ฟังก์ชันลบใบเดิมออกจาก zone
       const removeFromZone = () => {
         if (zone === "end") {
           setEnd1Cards((prev) => prev.filter((_, i) => i !== index));
@@ -49,25 +53,37 @@ function End1({
         }
       };
 
+      // 🖐 คืนเข้ามือ
+      document.getElementById("btnHand").onclick = () => {
+        removeFromZone();
+        setHandCards((prev) => [...prev, img]);
+        Swal.close();
+      };
+
+      // 📥 กลับเข้ากอง
       document.getElementById("btnDeck").onclick = () => {
         removeFromZone();
         setDeckCards((prev) => [...prev, img]);
         Swal.close();
       };
 
+      // 🔥 ไป END1
       document.getElementById("btnEnd1").onclick = () => {
         removeFromZone();
         setEnd1Cards((prev) => [...prev, img]);
         Swal.close();
       };
 
+      // 💀 ไป END2
       document.getElementById("btnEnd2").onclick = () => {
         removeFromZone();
         setEnd2Cards((prev) => [...prev, img]);
         Swal.close();
       };
+
     }, 20);
   };
+
 
 
   return (

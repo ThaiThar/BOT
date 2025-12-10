@@ -3,11 +3,12 @@ import Swal from "sweetalert2";
 import "./handbutton.css";
 
 function HandButton({
-    handCards,
-    setHandCards,
+    handCards, setHandCards,
     magicSlots, setMagicSlots,
     avatarSlots, setAvatarSlots,
-    modSlots, setModSlots
+    modSlots, setModSlots,
+    end1Cards, setEnd1Cards,
+    end2Cards, setEnd2Cards
 }) {
 
     const dropToMagic = (img) => {
@@ -76,50 +77,66 @@ function HandButton({
 
 
     const openCardAction = (img) => {
-    Swal.fire({
-        title: "เลือกการกระทำ",
-        html: `
-            <button class="zone-btn" id="btnMagic">⚡ Magic</button>
-            <button class="zone-btn" id="btnAvatar">🛡 Avatar</button>
-            <button class="zone-btn" id="btnMod">🔧 Modification</button>
+        Swal.fire({
+            title: "เลือกการกระทำ",
+            html: `
+            <img src="${img}" width="500px" class="preview-card" />
+            <div class="action-btn-wrap">
+                <button class="zone-btn" id="btnMagic">⚡ Magic</button>
+                <button class="zone-btn" id="btnAvatar">🛡 Avatar</button>
+                <button class="zone-btn" id="btnMod">🔧 Modification</button>
+                <button class="zone-btn danger" id="btnEnd1">🔥 ทิ้งไป END1</button>
+                <button class="zone-btn danger" id="btnEnd2">💀 ทิ้งไป END2</button>
+            </div>
         `,
-        showConfirmButton: false,
-        width: 300,
-        background: "#222",
-        color: "#fff",
-        allowOutsideClick: false,   // ❗ คลิกนอกห้ามปิด (กันกดผิด)
-        allowEscapeKey: false
-    });
+            showConfirmButton: false,
+            width: 550,
+            background: "#111",
+            color: "#fff",
+            allowOutsideClick: false,
+            allowEscapeKey: true
+        });
 
-    setTimeout(() => {
+        setTimeout(() => {
+            const disableAll = () => {
+                document.querySelectorAll(".zone-btn").forEach(btn => btn.disabled = true);
+            };
 
-        // ฟังก์ชันปิดปุ่มทั้งหมดเพื่อป้องกันการคลิกหลายครั้ง
-        const disableAll = () => {
-            document.getElementById("btnMagic").disabled = true;
-            document.getElementById("btnAvatar").disabled = true;
-            document.getElementById("btnMod").disabled = true;
-        };
+            document.getElementById("btnMagic").onclick = () => {
+                disableAll();
+                Swal.close();
+                dropToMagic(img);
+            };
 
-        document.getElementById("btnMagic").onclick = () => {
-            disableAll();
-            Swal.close();
-            dropToMagic(img);
-        };
+            document.getElementById("btnAvatar").onclick = () => {
+                disableAll();
+                Swal.close();
+                dropToAvatar(img);
+            };
 
-        document.getElementById("btnAvatar").onclick = () => {
-            disableAll();
-            Swal.close();
-            dropToAvatar(img);
-        };
+            document.getElementById("btnMod").onclick = () => {
+                disableAll();
+                Swal.close();
+                dropToModification(img);
+            };
 
-        document.getElementById("btnMod").onclick = () => {
-            disableAll();
-            Swal.close();
-            dropToModification(img);
-        };
+            document.getElementById("btnEnd1").onclick = () => {
+                disableAll();
+                Swal.close();
+                setEnd1Cards(prev => [...prev, img]);
+                removeCardFromHand(img);
+            };
 
-    }, 20);
-};
+            document.getElementById("btnEnd2").onclick = () => {
+                disableAll();
+                Swal.close();
+                setEnd2Cards(prev => [...prev, img]);
+                removeCardFromHand(img);
+            };
+
+        }, 20);
+    };
+
 
 
 
@@ -135,15 +152,15 @@ function HandButton({
             html: `
                 <div class="hand-grid">
                     ${handCards
-                        .map(
-                            (img) => `
+                    .map(
+                        (img) => `
                                 <img 
                                     src="${img}" 
                                     class="hand-img"
                                     onclick="window.openCardAction('${img}')"
                                 />
                             `
-                        ).join("")}
+                    ).join("")}
                 </div>
             `,
             width: "700px",
