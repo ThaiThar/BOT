@@ -1,5 +1,5 @@
 import React from "react";
-import Bas from "./bas.jsx"; // ใช้ bas เดิมของคุณมาสร้าง 2 ฝั่ง
+// import Bas from "./bas.jsx"; // ใช้ bas เดิมของคุณมาสร้าง 2 ฝั่ง
 
 import "./style.css"; // ถ้า bas ใช้ไฟล์นี้อยู่แล้ว
 

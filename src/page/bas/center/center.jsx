@@ -1,13 +1,14 @@
+// src/components/Bas/center/center.jsx
 import React from "react";
 import Swal from "sweetalert2";
 import "./centerstyle.css";
 
 function Center({
-  magicSlots,
+  magicSlots = [], 
   setMagicSlots,
-  avatarSlots,
+  avatarSlots = [], 
   setAvatarSlots,
-  modSlots,
+  modSlots = [],    
   setModSlots,
   setHandCards,
   end1Cards,
@@ -17,13 +18,11 @@ function Center({
   deckCards,
   setDeckCards,
   isEnemy,
-  avatarRotation,
+  avatarRotation = [0,0,0,0], 
   setAvatarRotation,
   onAttack,
 }) {
-  // --------------------------------------------------
-  // 🟦 Preview-only สำหรับฝั่งสตู
-  // --------------------------------------------------
+  
   const previewOnly = (img) => {
     Swal.fire({
       title: "",
@@ -35,12 +34,8 @@ function Center({
     });
   };
 
-  // --------------------------------------------------
-  // 🟧 หมุน Avatar (เฉพาะผู้เล่น)
-  // --------------------------------------------------
   const rotateAvatar = (index) => {
     if (isEnemy) return;
-
     setAvatarRotation((prev) => {
       const next = [...prev];
       next[index] = next[index] === 0 ? 90 : 0;
@@ -48,11 +43,7 @@ function Center({
     });
   };
 
-  // --------------------------------------------------
-  // 🟩 เมนู Swal เลือก Action (ใช้ได้เฉพาะผู้เล่น)
-  // --------------------------------------------------
   const chooseAction = (img, onReturn) => {
-    // ฝั่งศัตรู → แค่ดูรูป
     if (isEnemy) return previewOnly(img);
 
     Swal.fire({
@@ -86,9 +77,6 @@ function Center({
     });
   };
 
-  // --------------------------------------------------
-  // 🔵 คืนจาก Magic
-  // --------------------------------------------------
   const returnCardFromMagic = (index) => {
     const card = magicSlots[index];
     if (!card) return;
@@ -105,9 +93,6 @@ function Center({
     });
   };
 
-  // --------------------------------------------------
-  // 🟢 คืนจาก Avatar (รวม MODS)
-  // --------------------------------------------------
   const returnCardFromAvatar = (index) => {
     const avatarCard = avatarSlots[index];
     if (!avatarCard) return;
@@ -138,10 +123,8 @@ function Center({
     });
   };
 
-  // --------------------------------------------------
-  // 🟣 คืนจาก Modification
-  // --------------------------------------------------
   const returnCardFromMod = (avatarIndex, modIndex) => {
+    if (!modSlots[avatarIndex]) return;
     const card = modSlots[avatarIndex][modIndex];
     if (!card) return;
 
@@ -163,15 +146,20 @@ function Center({
   // UI RENDER
   // --------------------------------------------------
   return (
-    <div className="boxcenter">
-      {/* AVATAR + MOD Zone */}
+    <div 
+      className="boxcenter" 
+      // ❌ เอา style flexDirection ออก เพื่อให้มันเรียงตามธรรมชาติ
+      // การกลับหัวจะถูกจัดการโดย rotate(180deg) ใน BattleFieldOnline.jsx เอง
+    >
+      
+      {/* 1. AVATAR + MOD Zone */}
       <div className="avatar-row">
-        {avatarSlots.map((avatarImg, i) => (
+        {(avatarSlots || []).map((avatarImg, i) => (
           <div key={i} className="avatar-block">
             <div
               className="avatarcenter"
               style={{
-                background: avatarRotation[i] !== 0 ? "none" : "white",
+                background: (avatarRotation?.[i] !== 0) ? "transparent" : "rgba(255,255,255,0.1)",
                 transition: "0.25s",
               }}
             >
@@ -180,15 +168,13 @@ function Center({
                   <img
                     src={avatarImg}
                     className="avatar-img"
-                    onClick={() =>
-                      isEnemy ? previewOnly(avatarImg) : returnCardFromAvatar(i)
-                    }
+                    onClick={() => isEnemy ? previewOnly(avatarImg) : returnCardFromAvatar(i)}
                     onContextMenu={(e) => {
                       e.preventDefault();
                       if (!isEnemy) rotateAvatar(i);
                     }}
                     style={{
-                      transform: `rotate(${avatarRotation[i]}deg)`,
+                      transform: `rotate(${avatarRotation?.[i] || 0}deg)`,
                       transition: "0.25s ease",
                     }}
                   />
@@ -196,8 +182,8 @@ function Center({
               )}
             </div>
 
-            {/* ปุ่มโจมตี (เฉพาะฝั่งเรา และการ์ดยังไม่หมุน) */}
-            {!isEnemy && avatarImg && avatarRotation[i] === 0 && (
+            {/* ปุ่มโจมตี */}
+            {!isEnemy && avatarImg && avatarRotation?.[i] === 0 && (
               <button
                 className="atk-btn-card"
                 onClick={() => onAttack && onAttack(i)}
@@ -208,14 +194,12 @@ function Center({
 
             {/* MODS */}
             <div className="modificationcard-wrapper">
-              {modSlots[i].map((modImg, idx) => (
+              {(modSlots[i] || []).map((modImg, idx) => (
                 <img
                   key={idx}
                   src={modImg}
                   className="mod-img"
-                  onClick={() =>
-                    isEnemy ? previewOnly(modImg) : returnCardFromMod(i, idx)
-                  }
+                  onClick={() => isEnemy ? previewOnly(modImg) : returnCardFromMod(i, idx)}
                 />
               ))}
             </div>
@@ -223,22 +207,21 @@ function Center({
         ))}
       </div>
 
-      {/* MAGIC ZONE */}
+      {/* 2. MAGIC ZONE */}
       <div className="centermagic">
-        {magicSlots.map((img, i) => (
+        {(magicSlots || []).map((img, i) => (
           <div key={i} className="magiccenter">
             {img && (
               <img
                 src={img}
                 className="center-img"
-                onClick={() =>
-                  isEnemy ? previewOnly(img) : returnCardFromMagic(i)
-                }
+                onClick={() => isEnemy ? previewOnly(img) : returnCardFromMagic(i)}
               />
             )}
           </div>
         ))}
       </div>
+
     </div>
   );
 }

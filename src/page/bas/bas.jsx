@@ -10,28 +10,21 @@ import End1 from "./end1/end1.jsx";
 import HandButton from "./hand/HandButton.jsx";
 import Battle from "../battle/battle.jsx";
 import ShuffleEffect from "./ui/ShuffleEffect.jsx";
-import BattleClash from "./ui/BattleClash.jsx"; // 1. Import แล้ว (ถูกต้อง)
+import BattleClash from "./ui/BattleClash.jsx";
 
 // Hooks
-import { useBasState } from "./hooks/useBasState";
 import { useBattleSystem } from "./hooks/useBattleSystem";
 
 function Bas({
+  gameState, 
   playerId = "P1",
-  socket,
-  roomId,
   isEnemy = false,
-  myRole,
-  enemyRole,
 }) {
-  // 1. เรียกใช้ Logic หลัก
-  const gameState = useBasState({ socket, roomId, myRole, enemyRole, isEnemy });
-
+  
   // 2. เรียกใช้ Battle System
-  // ⚠️ แก้ไข: ต้องเพิ่ม avatarSlots และ triggerBattleAnim เข้าไปเพื่อให้ระบบ Animation ทำงาน
   const { startAttack } = useBattleSystem({
     isEnemy,
-    avatarSlots: gameState.avatarSlots, // ✅ เพิ่ม: เพื่อให้รู้ว่าใครเป็นคนตี (เอารูปฝั่งเรา)
+    avatarSlots: gameState.avatarSlots,
     enemyAvatarSlots: gameState.enemyAvatarSlots,
     setEnemyAvatarSlots: gameState.setEnemyAvatarSlots,
     enemyModSlots: gameState.enemyModSlots,
@@ -40,20 +33,34 @@ function Bas({
     setEnemyEnd1: gameState.setEnemyEnd1,
     broadcast: gameState.broadcast,
     updateRotation: gameState.updateRotation,
-    triggerBattleAnim: gameState.triggerBattleAnim, // ✅ เพิ่ม: เพื่อส่งคำสั่งเริ่ม Animation
+    triggerBattleAnim: gameState.triggerBattleAnim,
+    
+    // ส่งข้อมูลสำหรับตีบ้าน
+    enemyStartCards: gameState.enemyStartCards, 
+    setEnemyStartCards: gameState.setEnemyStartCards, 
   });
 
   // 3. เตรียมข้อมูล UI
-  const uiAvatarSlots = isEnemy
-    ? gameState.enemyAvatarSlots
-    : gameState.avatarSlots;
+  const uiAvatarSlots = isEnemy ? gameState.enemyAvatarSlots : gameState.avatarSlots;
   const uiModSlots = isEnemy ? gameState.enemyModSlots : gameState.modSlots;
   const uiEnd1 = isEnemy ? gameState.enemyEnd1 : gameState.end1Cards;
   const uiEnd2 = isEnemy ? gameState.enemyEnd2 : gameState.end2Cards;
-  const uiRotation = isEnemy
-    ? gameState.enemyRotation
-    : gameState.avatarRotation;
+  const uiRotation = isEnemy ? gameState.enemyRotation : gameState.avatarRotation;
   const uiDeck = isEnemy ? gameState.enemyDeck : gameState.deckCards;
+
+  // ✅✅✅ แก้ไขจุดนี้: เลือก Magic Slots ให้ถูกฝั่ง ✅✅✅
+  // ถ้าเป็นศัตรู -> ใช้ enemyMagicSlots (ที่ sync มา)
+  // ถ้าเป็นเรา -> ใช้ magicSlots (ของเราเอง)
+  const uiMagicSlots = isEnemy ? gameState.enemyMagicSlots : gameState.magicSlots;
+
+  // 4. เตรียมข้อมูล UI สำหรับ Start
+  const uiStartCards = isEnemy ? gameState.enemyStartCards : gameState.startCards;
+  const uiStartImages = isEnemy ? gameState.enemyStartImages : gameState.startImages;
+  const uiStartStage = isEnemy ? gameState.enemyStartStage : gameState.startStage;
+
+  const setStartCards = isEnemy ? () => {} : gameState.updateStartCards;
+  const setStartImages = isEnemy ? () => {} : gameState.updateStartImages;
+  const setStartStage = isEnemy ? () => {} : gameState.updateStartStage;
 
   const handleDrawCard = (card) =>
     gameState.updateHand((prev) => [...prev, card]);
@@ -61,17 +68,17 @@ function Bas({
   return (
     <div
       className="fillborad"
-      style={isEnemy ? { pointerEvents: "none", opacity: 0.8 } : {}}
+      style={isEnemy ? { opacity: 1 } : {}} 
     >
-      {/* ⚠️ แก้ไข: เพิ่ม Component BattleClash ไว้บนสุดเพื่อให้แสดงผลทับหน้าจอ */}
-      <BattleClash
-        isOpen={gameState.battleAnim.isOpen}
-        attackerImg={gameState.battleAnim.attackerImg}
-        defenderImg={gameState.battleAnim.defenderImg}
-        onAnimationComplete={gameState.closeBattleAnim}
-      />
+      {!isEnemy && (
+        <BattleClash
+          isOpen={gameState.battleAnim.isOpen}
+          attackerImg={gameState.battleAnim.attackerImg}
+          defenderImg={gameState.battleAnim.defenderImg}
+          onAnimationComplete={gameState.closeBattleAnim}
+        />
+      )}
 
-      {/* Effect สับไพ่ */}
       <ShuffleEffect isShuffling={gameState.isShuffling} />
 
       <div style={{ textAlign: "center", marginBottom: 4 }}>
@@ -83,7 +90,8 @@ function Bas({
       <HandButton
         handCards={isEnemy ? [] : gameState.handCards}
         setHandCards={gameState.updateHand}
-        magicSlots={gameState.magicSlots}
+        // ตรงนี้ HandButton ใช้ของ local เสมอ (เพราะศัตรูไม่มี handButton)
+        magicSlots={gameState.magicSlots} 
         setMagicSlots={gameState.updateMagic}
         avatarSlots={uiAvatarSlots}
         setAvatarSlots={gameState.updateAvatar}
@@ -102,21 +110,32 @@ function Bas({
 
       <div style={{ display: "flex" }}>
         <div className="start">
-          <Start />
+          <Start
+            cards={uiStartCards}
+            setCards={setStartCards}
+            images={uiStartImages}
+            setImages={setStartImages}
+            stage={uiStartStage}
+            setStage={setStartStage}
+            isEnemy={isEnemy}
+          />
         </div>
 
         <div className="center">
           <Center
-            // State
-            magicSlots={gameState.magicSlots}
+            // ✅✅✅ ส่งตัวแปรที่เลือกแล้วเข้าไป (uiMagicSlots)
+            magicSlots={uiMagicSlots} 
+            
             avatarSlots={uiAvatarSlots}
             modSlots={uiModSlots}
             end1Cards={uiEnd1}
             end2Cards={uiEnd2}
             deckCards={uiDeck}
             avatarRotation={uiRotation}
-            // Updaters
-            setMagicSlots={gameState.updateMagic}
+            
+            // ✅✅✅ ถ้าเป็นศัตรู ห้ามเซ็ตค่า (ส่งฟังก์ชันว่าง)
+            setMagicSlots={isEnemy ? () => {} : gameState.updateMagic}
+            
             setAvatarSlots={gameState.updateAvatar}
             setModSlots={gameState.updateMods}
             setHandCards={gameState.updateHand}
@@ -124,7 +143,6 @@ function Bas({
             setEnd2Cards={gameState.updateEnd2}
             setDeckCards={gameState.updateDeck}
             setAvatarRotation={gameState.updateRotation}
-            // Actions
             isEnemy={isEnemy}
             onAttack={startAttack}
           />
@@ -132,17 +150,14 @@ function Bas({
 
         <div className="end1">
           <End1
-            // State
             deckCards={uiDeck}
             end1Cards={uiEnd1}
             end2Cards={uiEnd2}
             handCards={gameState.handCards}
-            // Updaters
             setDeckCards={gameState.updateDeck}
             setEnd1Cards={gameState.updateEnd1}
             setEnd2Cards={gameState.updateEnd2}
             setHandCards={gameState.updateHand}
-            // Actions
             onDrawCard={handleDrawCard}
             resetGame={gameState.resetGame}
             isEnemy={isEnemy}

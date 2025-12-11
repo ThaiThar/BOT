@@ -21,15 +21,15 @@ function End1({
   handCards,
   setHandCards,
   resetGame,
-  onShuffleDeck, // 🔥 เรียกสับการ์ดแบบ shared animation
+  onShuffleDeck,
+  isEnemy, // ✅ 1. รับค่า isEnemy เข้ามา
 }) {
-  // ใช้สำหรับโชว์ปุ่ม reset/เลือกการ์ด 50 ใบ
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // ---------------------------------------------------------
-  // 🔥 Reset ทั้งเกม + Reset ระบบเลือกไฟล์
-  // ---------------------------------------------------------
   const resetLocal = () => {
+    // ป้องกันเผื่อหลุด
+    if (isEnemy) return; 
+
     Swal.fire({
       title: "รีเซตเกมใหม่?",
       text: "การ์ดทุกใบจะหายหมด คุณต้องเลือกการ์ดใหม่ทั้งหมด",
@@ -46,10 +46,10 @@ function End1({
     });
   };
 
-  // ---------------------------------------------------------
-  // 🔥 เลือกการ์ดจาก END1 / END2 → คืนเข้ามือ, กอง, END1, END2
-  // ---------------------------------------------------------
   const returnToDeck = (img, index, zone) => {
+    // ✅ ป้องกันไม่ให้ศัตรูกดการ์ดในกอง End เราเล่น
+    if (isEnemy) return;
+
     Swal.fire({
       title: "เลือกการกระทำ",
       html: `
@@ -106,38 +106,38 @@ function End1({
     });
   };
 
-  // ---------------------------------------------------------
-  // UI Render
-  // ---------------------------------------------------------
   return (
     <div>
       {/* ---------------------------------------------------------------- */}
-      {/* 🔥 ปุ่มเลือกการ์ด หรือปุ่ม Reset */}
+      {/* 🔥 ปุ่มเลือกการ์ด หรือปุ่ม Reset (ซ่อนถ้าเป็นศัตรู) */}
       {/* ---------------------------------------------------------------- */}
-      <div style={{ marginBottom: "5px", textAlign: "center" }}>
-        {!isLoaded ? (
-          <label className="select-file-btn">
-            เลือกการ์ดทั้งหมด (50 ใบ)
-            <input
-              type="file"
-              accept="image/*"
-              multiple
-              style={{ display: "none" }}
-              onChange={(e) => {
-                handleChooseCards(e.target.files, (imgs) => {
-                  showPreviewSwal(imgs, setDeckCards);
-                  setIsLoaded(true);
-                });
-                e.target.value = null;
-              }}
-            />
-          </label>
-        ) : (
-          <button className="select-file-btn" onClick={resetLocal}>
-            🔄 รีเซตเกมใหม่
-          </button>
-        )}
-      </div>
+      {/* ✅ 2. เช็ค !isEnemy */}
+      {!isEnemy && (
+        <div style={{ marginBottom: "5px", textAlign: "center" }}>
+          {!isLoaded ? (
+            <label className="select-file-btn">
+              เลือกการ์ดทั้งหมด (50 ใบ)
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                style={{ display: "none" }}
+                onChange={(e) => {
+                  handleChooseCards(e.target.files, (imgs) => {
+                    showPreviewSwal(imgs, setDeckCards);
+                    setIsLoaded(true);
+                  });
+                  e.target.value = null;
+                }}
+              />
+            </label>
+          ) : (
+            <button className="select-file-btn" onClick={resetLocal}>
+              🔄 รีเซตเกมใหม่
+            </button>
+          )}
+        </div>
+      )}
 
       <div className="enddeck">
         {/* ---------------------------------------------------------------- */}
@@ -146,50 +146,55 @@ function End1({
         <div className="deck">
           <img src={myPic} className="deckSingleImg" alt="Back Card" />
 
-          <div className="deck-buttom">
-            <div className="deckcard">
-              <div
-                className="buttomdeckcard select"
-                onClick={() => viewDeck(deckCards, setDeckCards, setHandCards)}
-              >
-                เลือกการ์ด
-              </div>
+          {/* ✅ 3. ซ่อนแผงควบคุม Deck ทั้งหมดถ้าเป็นศัตรู */}
+          {!isEnemy && (
+            <div className="deck-buttom">
+              <div className="deckcard">
+                <div
+                  className="buttomdeckcard select"
+                  onClick={() =>
+                    viewDeck(deckCards, setDeckCards, setHandCards)
+                  }
+                >
+                  เลือกการ์ด
+                </div>
 
-              <div
-                className="buttomdeckcard discard"
-                onClick={() => {
-                  if (deckCards.length === 0)
-                    return Swal.fire("ไม่มีการ์ดในกอง");
-                  Swal.fire("ฟังก์ชัน discard ยังไม่เปิดใช้");
-                }}
-              >
-                ทิ้งการ์ด
-              </div>
+                <div
+                  className="buttomdeckcard discard"
+                  onClick={() => {
+                    if (deckCards.length === 0)
+                      return Swal.fire("ไม่มีการ์ดในกอง");
+                    Swal.fire("ฟังก์ชัน discard ยังไม่เปิดใช้");
+                  }}
+                >
+                  ทิ้งการ์ด
+                </div>
 
-              <div
-                className="buttomdeckcard jua"
-                onClick={() => drawCard(deckCards, setDeckCards, onDrawCard)}
-              >
-                จั่วการ์ด
-              </div>
+                <div
+                  className="buttomdeckcard jua"
+                  onClick={() => drawCard(deckCards, setDeckCards, onDrawCard)}
+                >
+                  จั่วการ์ด
+                </div>
 
-              <div
-                className="buttomdeckcard shuffle"
-                onClick={() => onShuffleDeck()} // 🔥 sync สับการ์ด
-              >
-                สับการ์ด
-              </div>
+                <div
+                  className="buttomdeckcard shuffle"
+                  onClick={() => onShuffleDeck()}
+                >
+                  สับการ์ด
+                </div>
 
-              <div
-                className="buttomdeckcard snoop"
-                onClick={() =>
-                  snoopCards(deckCards, setDeckCards, setHandCards)
-                }
-              >
-                สอดแนม
+                <div
+                  className="buttomdeckcard snoop"
+                  onClick={() =>
+                    snoopCards(deckCards, setDeckCards, setHandCards)
+                  }
+                >
+                  สอดแนม
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* ---------------------------------------------------------------- */}
@@ -202,7 +207,9 @@ function End1({
                 key={i}
                 src={img}
                 className="endcard-img"
+                // ✅ 4. ถ้าเป็นศัตรู ห้ามกด (returnToDeck มีเช็คข้างในแล้ว หรือจะใส่เงื่อนไขตรงนี้ก็ได้)
                 onClick={() => returnToDeck(img, i, "end")}
+                style={{ cursor: isEnemy ? "default" : "pointer" }}
                 alt={`End1-${i}`}
               />
             ))}
@@ -220,6 +227,7 @@ function End1({
                 src={img}
                 className="endcard-img"
                 onClick={() => returnToDeck(img, i, "end2")}
+                style={{ cursor: isEnemy ? "default" : "pointer" }}
                 alt={`End2-${i}`}
               />
             ))}
