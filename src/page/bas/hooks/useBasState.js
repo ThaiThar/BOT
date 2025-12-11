@@ -2,6 +2,13 @@
 import { useState, useEffect, useCallback } from "react";
 
 export function useBasState({ socket, roomId, myRole, enemyRole, isEnemy }) {
+  // 📌 State สำหรับ Animation
+  const [battleAnim, setBattleAnim] = useState({
+    isOpen: false,
+    attackerImg: null,
+    defenderImg: null,
+  });
+
   // --- STATE (ฝั่งเรา) ---
   const [handCards, setHandCards] = useState([]);
   const [magicSlots, setMagicSlots] = useState([null, null, null, null]);
@@ -22,13 +29,40 @@ export function useBasState({ socket, roomId, myRole, enemyRole, isEnemy }) {
   const [enemyDeck, setEnemyDeck] = useState([]);
 
   // --- BROADCAST HELPER ---
-  const broadcast = useCallback((actionType, payload) => {
-    if (!socket || !roomId || isEnemy) return;
-    socket.emit("send_action", { roomId, sender: myRole, actionType, payload });
-  }, [socket, roomId, isEnemy, myRole]);
+  const broadcast = useCallback(
+    (actionType, payload) => {
+      if (!socket || !roomId || isEnemy) return;
+      socket.emit("send_action", {
+        roomId,
+        sender: myRole,
+        actionType,
+        payload,
+      });
+    },
+    [socket, roomId, isEnemy, myRole]
+  );
+
+  // --- ACTION FUNCTIONS ---
+  
+  // 1. ฟังก์ชันปิด Animation
+  const closeBattleAnim = () => {
+    setBattleAnim((prev) => ({ ...prev, isOpen: false }));
+  };
+
+  // 2. ฟังก์ชันเปิด Animation (ย้ายมาไว้ตรงนี้ เพื่อให้ใช้งานได้)
+  const triggerBattleAnim = (attackerImg, defenderImg) => {
+    // 1. ส่งให้คู่แข่งเห็น
+    broadcast("trigger_battle_anim", { attackerImg, defenderImg });
+
+    // 2. ให้เราเห็นด้วย
+    setBattleAnim({
+      isOpen: true,
+      attackerImg,
+      defenderImg,
+    });
+  };
 
   // --- UPDATE WRAPPERS (State + Broadcast) ---
-  // ใช้ Generic function เพื่อลด code ซ้ำ
   const createUpdater = (setter, actionType) => (fn) => {
     setter((prev) => {
       const next = typeof fn === "function" ? fn(prev) : fn;
@@ -50,7 +84,7 @@ export function useBasState({ socket, roomId, myRole, enemyRole, isEnemy }) {
   useEffect(() => {
     if (!socket) return;
     const listener = (data) => {
-      if (data.sender !== enemyRole) return;
+      if (data.sender !== enemyRole && data.sender !== myRole) return;
 
       switch (data.actionType) {
         case "update_avatar": setEnemyAvatarSlots(data.payload); break;
@@ -67,24 +101,31 @@ export function useBasState({ socket, roomId, myRole, enemyRole, isEnemy }) {
         case "update_enemy_after_attack": {
           if (!isEnemy) {
             const { enemyEnd1, enemyAvatar, enemyMods, attackerIndex } = data.payload;
-            // อัปเดตและ broadcast กลับทันทีเพื่อ sync
             updateEnd1(enemyEnd1);
             updateAvatar(enemyAvatar);
             updateMods(enemyMods);
-            setEnemyRotation(prev => {
-                const next = [...prev]; 
-                next[attackerIndex] = 90; 
-                return next; 
+            setEnemyRotation((prev) => {
+              const next = [...prev];
+              next[attackerIndex] = 90;
+              return next;
             });
           }
           break;
         }
-        default: break;
+        case "trigger_battle_anim":
+          setBattleAnim({
+            isOpen: true,
+            attackerImg: data.payload.attackerImg,
+            defenderImg: data.payload.defenderImg,
+          });
+          break;
+        default:
+          break;
       }
     };
     socket.on("receive_action", listener);
     return () => socket.off("receive_action", listener);
-  }, [socket, enemyRole, isEnemy]);
+  }, [socket, enemyRole, myRole, isEnemy]);
 
   // --- SHUFFLE LOGIC ---
   const onShuffleDeck = () => {
@@ -109,6 +150,7 @@ export function useBasState({ socket, roomId, myRole, enemyRole, isEnemy }) {
     updateRotation([0, 0, 0, 0]);
   };
 
+  // ✅ รวม Return ไว้ที่เดียวตอนท้ายสุด
   return {
     // Local State & Updaters
     handCards, updateHand,
@@ -122,16 +164,21 @@ export function useBasState({ socket, roomId, myRole, enemyRole, isEnemy }) {
     isShuffling,
     onShuffleDeck,
     resetGame,
-    
-    // Enemy State & Setters (for battle logic)
+
+    // Enemy State & Setters
     enemyAvatarSlots, setEnemyAvatarSlots,
     enemyModSlots, setEnemyModSlots,
     enemyEnd1, setEnemyEnd1,
     enemyEnd2, setEnemyEnd2,
     enemyRotation, setEnemyRotation,
     enemyDeck, setEnemyDeck,
-    
+
     // Utils
-    broadcast
+    broadcast,
+
+    // Battle Animation
+    battleAnim,
+    closeBattleAnim,
+    triggerBattleAnim,
   };
 }
