@@ -44,6 +44,8 @@ function BattleFieldOnline({ socket, roomId, myRole, enemyRole }) {
       }}
     >
       
+      
+      
       {/* 🎲 DICE ZONE (ลากได้อิสระ) */}
       <Draggable 
         nodeRef={nodeRef} 
@@ -116,12 +118,14 @@ function BattleFieldOnline({ socket, roomId, myRole, enemyRole }) {
           alignItems: "center",
           borderTop: "2px solid #4444ff",
           position: "relative",
+          
                   }}
       >
         <Bas
           gameState={gameState}
           playerId={myRole}
           isEnemy={false}
+          myRole={myRole}
         />
       </div>
     </div>

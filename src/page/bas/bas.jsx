@@ -11,6 +11,7 @@ import HandButton from "./hand/HandButton.jsx";
 import Battle from "../battle/battle.jsx";
 import ShuffleEffect from "./ui/ShuffleEffect.jsx";
 import BattleClash from "./ui/BattleClash.jsx";
+import SnoopOverlay from "./ui/SnoopOverlay.jsx"; // ✅ Import
 
 // Hooks
 import { useBattleSystem } from "./hooks/useBattleSystem";
@@ -19,6 +20,7 @@ function Bas({
   gameState, 
   playerId = "P1",
   isEnemy = false,
+  myRole, // ✅ รับ myRole เข้ามาเพื่อส่งให้ SnoopOverlay
 }) {
   
   // 2. เรียกใช้ Battle System
@@ -48,9 +50,7 @@ function Bas({
   const uiRotation = isEnemy ? gameState.enemyRotation : gameState.avatarRotation;
   const uiDeck = isEnemy ? gameState.enemyDeck : gameState.deckCards;
 
-  // ✅✅✅ แก้ไขจุดนี้: เลือก Magic Slots ให้ถูกฝั่ง ✅✅✅
-  // ถ้าเป็นศัตรู -> ใช้ enemyMagicSlots (ที่ sync มา)
-  // ถ้าเป็นเรา -> ใช้ magicSlots (ของเราเอง)
+  // ✅ เลือก Magic Slots ให้ถูกฝั่ง
   const uiMagicSlots = isEnemy ? gameState.enemyMagicSlots : gameState.magicSlots;
 
   // 4. เตรียมข้อมูล UI สำหรับ Start
@@ -70,6 +70,20 @@ function Bas({
       className="fillborad"
       style={isEnemy ? { opacity: 1 } : {}} 
     >
+      {/* ✅ ใส่ Snoop Overlay (เฉพาะกระดานเรา) */}
+      {!isEnemy && (
+        <SnoopOverlay
+          isOpen={gameState.snoopState.isOpen}
+          cards={gameState.snoopState.cards}
+          revealedIndexes={gameState.snoopState.revealedIndexes}
+          ownerRole={gameState.snoopState.owner}
+          myRole={myRole} 
+          onFlip={gameState.flipSnoopCard}
+          onSelect={gameState.endSnoopSession}
+        />
+      )}
+
+      {/* Battle Animation */}
       {!isEnemy && (
         <BattleClash
           isOpen={gameState.battleAnim.isOpen}
@@ -90,7 +104,6 @@ function Bas({
       <HandButton
         handCards={isEnemy ? [] : gameState.handCards}
         setHandCards={gameState.updateHand}
-        // ตรงนี้ HandButton ใช้ของ local เสมอ (เพราะศัตรูไม่มี handButton)
         magicSlots={gameState.magicSlots} 
         setMagicSlots={gameState.updateMagic}
         avatarSlots={uiAvatarSlots}
@@ -123,19 +136,14 @@ function Bas({
 
         <div className="center">
           <Center
-            // ✅✅✅ ส่งตัวแปรที่เลือกแล้วเข้าไป (uiMagicSlots)
             magicSlots={uiMagicSlots} 
-            
             avatarSlots={uiAvatarSlots}
             modSlots={uiModSlots}
             end1Cards={uiEnd1}
             end2Cards={uiEnd2}
             deckCards={uiDeck}
             avatarRotation={uiRotation}
-            
-            // ✅✅✅ ถ้าเป็นศัตรู ห้ามเซ็ตค่า (ส่งฟังก์ชันว่าง)
             setMagicSlots={isEnemy ? () => {} : gameState.updateMagic}
-            
             setAvatarSlots={gameState.updateAvatar}
             setModSlots={gameState.updateMods}
             setHandCards={gameState.updateHand}
@@ -162,6 +170,9 @@ function Bas({
             resetGame={gameState.resetGame}
             isEnemy={isEnemy}
             onShuffleDeck={gameState.onShuffleDeck}
+            broadcast={gameState.broadcast}
+            // ✅✅✅ เพิ่มบรรทัดนี้ครับ ไม่งั้น End1 จะเรียกฟังก์ชันไม่ได้ ✅✅✅
+            startSnoopSession={gameState.startSnoopSession}
           />
         </div>
       </div>

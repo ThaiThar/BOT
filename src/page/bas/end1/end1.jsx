@@ -5,7 +5,7 @@ import myPic from "../../../assets/backcard.jpg";
 import { viewDeck } from "./functions/viewDeck";
 import { drawCard } from "./functions/drawCard";
 import { showPreviewSwal } from "./functions/showPreviewSwal";
-import { snoopCards } from "./functions/snoopCards";
+import { snoopCards } from "./functions/snoopCards"; // ✅ Import แล้ว
 import { handleChooseCards } from "./functions/handleChooseCards";
 
 import { useState } from "react";
@@ -22,13 +22,16 @@ function End1({
   setHandCards,
   resetGame,
   onShuffleDeck,
-  isEnemy, // ✅ 1. รับค่า isEnemy เข้ามา
+  isEnemy,
+  broadcast, // ✅ รับ broadcast เข้ามาเพื่อส่งให้ snoopCards
+  startSnoopSession,
 }) {
+  // ❌ ลบโค้ด JSX ที่เคยลอยอยู่ตรงนี้ออกไปแล้วครับ (ย้ายไปใส่ใน return ด้านล่างแทน)
+
   const [isLoaded, setIsLoaded] = useState(false);
 
   const resetLocal = () => {
-    // ป้องกันเผื่อหลุด
-    if (isEnemy) return; 
+    if (isEnemy) return;
 
     Swal.fire({
       title: "รีเซตเกมใหม่?",
@@ -47,7 +50,6 @@ function End1({
   };
 
   const returnToDeck = (img, index, zone) => {
-    // ✅ ป้องกันไม่ให้ศัตรูกดการ์ดในกอง End เราเล่น
     if (isEnemy) return;
 
     Swal.fire({
@@ -108,10 +110,7 @@ function End1({
 
   return (
     <div>
-      {/* ---------------------------------------------------------------- */}
-      {/* 🔥 ปุ่มเลือกการ์ด หรือปุ่ม Reset (ซ่อนถ้าเป็นศัตรู) */}
-      {/* ---------------------------------------------------------------- */}
-      {/* ✅ 2. เช็ค !isEnemy */}
+      {/* ส่วนเลือกไฟล์ / Reset */}
       {!isEnemy && (
         <div style={{ marginBottom: "5px", textAlign: "center" }}>
           {!isLoaded ? (
@@ -140,13 +139,10 @@ function End1({
       )}
 
       <div className="enddeck">
-        {/* ---------------------------------------------------------------- */}
-        {/* 🟩 DECK (กองการ์ด) */}
-        {/* ---------------------------------------------------------------- */}
         <div className="deck">
           <img src={myPic} className="deckSingleImg" alt="Back Card" />
 
-          {/* ✅ 3. ซ่อนแผงควบคุม Deck ทั้งหมดถ้าเป็นศัตรู */}
+          {/* แผงควบคุม Deck (แสดงเฉพาะฝั่งเรา) */}
           {!isEnemy && (
             <div className="deck-buttom">
               <div className="deckcard">
@@ -184,11 +180,10 @@ function End1({
                   สับการ์ด
                 </div>
 
+                {/* ✅✅✅ ปุ่มสอดแนมที่ถูกต้องอยู่ตรงนี้ ✅✅✅ */}
                 <div
                   className="buttomdeckcard snoop"
-                  onClick={() =>
-                    snoopCards(deckCards, setDeckCards, setHandCards)
-                  }
+                  onClick={() => snoopCards(deckCards, startSnoopSession)}
                 >
                   สอดแนม
                 </div>
@@ -197,9 +192,7 @@ function End1({
           )}
         </div>
 
-        {/* ---------------------------------------------------------------- */}
-        {/* 🟥 END1 */}
-        {/* ---------------------------------------------------------------- */}
+        {/* END1 Zone */}
         <div className="end">
           <div className="endzone-cards">
             {end1Cards.map((img, i) => (
@@ -207,7 +200,6 @@ function End1({
                 key={i}
                 src={img}
                 className="endcard-img"
-                // ✅ 4. ถ้าเป็นศัตรู ห้ามกด (returnToDeck มีเช็คข้างในแล้ว หรือจะใส่เงื่อนไขตรงนี้ก็ได้)
                 onClick={() => returnToDeck(img, i, "end")}
                 style={{ cursor: isEnemy ? "default" : "pointer" }}
                 alt={`End1-${i}`}
@@ -216,9 +208,7 @@ function End1({
           </div>
         </div>
 
-        {/* ---------------------------------------------------------------- */}
-        {/* 🟪 END2 */}
-        {/* ---------------------------------------------------------------- */}
+        {/* END2 Zone */}
         <div className="end2">
           <div className="endzone-cards">
             {end2Cards.map((img, i) => (
