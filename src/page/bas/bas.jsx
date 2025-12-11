@@ -1,185 +1,54 @@
-import React, { useState, useEffect } from "react";
+// src/components/Bas/Bas.jsx
+import React from "react";
 import "./style.css";
+import "../bas/end1/functions/HinduGodMode.css";
+
+// Components
 import Start from "./start/start.jsx";
 import Center from "./center/center.jsx";
 import End1 from "./end1/end1.jsx";
 import HandButton from "./hand/HandButton.jsx";
+import Battle from "../battle/battle.jsx";
+import ShuffleEffect from "./ui/ShuffleEffect.jsx";
 
-function Bas({ 
-  playerId = "P1", 
-  socket, 
-  roomId, 
-  isEnemy = false,
-  myRole,
-  enemyRole 
-}) {
+// Hooks
+import { useBasState } from "./hooks/useBasState";
+import { useBattleSystem } from "./hooks/useBattleSystem";
 
-  // --- State ทั้งหมด ---
-  const [handCards, setHandCards] = useState([]);
-  const [magicSlots, setMagicSlots] = useState([null, null, null, null]);
-  const [avatarSlots, setAvatarSlots] = useState([null, null, null, null]);
-  const [modSlots, setModSlots] = useState([[], [], [], []]);
-  const [end1Cards, setEnd1Cards] = useState([]);
-  const [end2Cards, setEnd2Cards] = useState([]);
-  const [deckCards, setDeckCards] = useState([]);
+function Bas({ playerId = "P1", socket, roomId, isEnemy = false, myRole, enemyRole }) {
   
-  // ✅ State สำหรับการหมุน Avatar
-  const [avatarRotation, setAvatarRotation] = useState([0, 0, 0, 0]);
+  // 1. เรียกใช้ Logic หลัก
+  const gameState = useBasState({ socket, roomId, myRole, enemyRole, isEnemy });
 
-  // --- Helper: ส่งข้อมูลไป Server ---
-  const broadcast = (actionType, payload) => {
-    // ✅ ให้เฉพาะกระดาน "ของเรา" เท่านั้นที่ส่งออกไป (isEnemy = false)
-    if (!isEnemy && socket && roomId) {
-      socket.emit("send_action", {
-        roomId,
-        sender: playerId,   // โดยปกติจะเป็น myRole เช่น "P1" หรือ "P2"
-        actionType,
-        payload,
-      });
-    }
-  };
+  // 2. เรียกใช้ Battle System (ส่ง gameState ที่จำเป็นเข้าไป)
+  const { startAttack } = useBattleSystem({
+    isEnemy,
+    enemyAvatarSlots: gameState.enemyAvatarSlots,
+    setEnemyAvatarSlots: gameState.setEnemyAvatarSlots,
+    enemyModSlots: gameState.enemyModSlots,
+    setEnemyModSlots: gameState.setEnemyModSlots,
+    enemyEnd1: gameState.enemyEnd1,
+    setEnemyEnd1: gameState.setEnemyEnd1,
+    broadcast: gameState.broadcast,
+    updateRotation: gameState.updateRotation,
+  });
 
-  // --- Wrappers ---
-  const updateRotation = (valOrFn) => {
-    setAvatarRotation((prev) => {
-      const newVal = typeof valOrFn === "function" ? valOrFn(prev) : valOrFn;
-      broadcast("update_rotation", newVal); 
-      return newVal;
-    });
-  };
+  // 3. เตรียมข้อมูล UI (เลือกแสดงของ เรา หรือ ศัตรู)
+  const uiAvatarSlots = isEnemy ? gameState.enemyAvatarSlots : gameState.avatarSlots;
+  const uiModSlots = isEnemy ? gameState.enemyModSlots : gameState.modSlots;
+  const uiEnd1 = isEnemy ? gameState.enemyEnd1 : gameState.end1Cards;
+  const uiEnd2 = isEnemy ? gameState.enemyEnd2 : gameState.end2Cards;
+  const uiRotation = isEnemy ? gameState.enemyRotation : gameState.avatarRotation;
+  const uiDeck = isEnemy ? gameState.enemyDeck : gameState.deckCards;
 
-  const updateHand = (valOrFn) => {
-    setHandCards((prev) => {
-      const newVal = typeof valOrFn === "function" ? valOrFn(prev) : valOrFn;
-      broadcast("update_hand", newVal);
-      return newVal;
-    });
-  };
-
-  const updateMagic = (valOrFn) => {
-    setMagicSlots((prev) => {
-      const newVal = typeof valOrFn === "function" ? valOrFn(prev) : valOrFn;
-      broadcast("update_magic", newVal);
-      return newVal;
-    });
-  };
-
-  const updateAvatar = (valOrFn) => {
-    setAvatarSlots((prev) => {
-      const newVal = typeof valOrFn === "function" ? valOrFn(prev) : valOrFn;
-      broadcast("update_avatar", newVal);
-      return newVal;
-    });
-  };
-
-  const updateMods = (valOrFn) => {
-    setModSlots((prev) => {
-      const newVal = typeof valOrFn === "function" ? valOrFn(prev) : valOrFn;
-      broadcast("update_mods", newVal);
-      return newVal;
-    });
-  };
-
-  const updateEnd1 = (valOrFn) => {
-    setEnd1Cards((prev) => {
-      const newVal = typeof valOrFn === "function" ? valOrFn(prev) : valOrFn;
-      broadcast("update_end1", newVal);
-      return newVal;
-    });
-  };
-
-  const updateEnd2 = (valOrFn) => {
-    setEnd2Cards((prev) => {
-      const newVal = typeof valOrFn === "function" ? valOrFn(prev) : valOrFn;
-      broadcast("update_end2", newVal);
-      return newVal;
-    });
-  };
-
-  const updateDeck = (valOrFn) => {
-    setDeckCards((prev) => {
-      const newVal = typeof valOrFn === "function" ? valOrFn(prev) : valOrFn;
-      broadcast("update_deck", newVal);
-      return newVal;
-    });
-  };
-
-  // --- Socket Listener ---
-  useEffect(() => {
-    if (!socket) return;
-
-    const handleReceiveAction = (data) => {
-      // ✅ ให้ "เฉพาะกระดานศัตรู" (isEnemy = true) ที่อัปเดตจาก socket
-      // กระดานของเรา (isEnemy = false) ไม่ต้องฟัง socket เลย
-      if (!isEnemy) return;
-
-      // ✅ ฝั่งนี้คือกระดานศัตรู → ต้องฟังเฉพาะ action จาก enemyRole
-      if (data.sender !== enemyRole) return;
-
-      switch (data.actionType) {
-        case "update_hand": 
-          setHandCards(data.payload); 
-          break;
-        case "update_magic": 
-          setMagicSlots(data.payload); 
-          break;
-        case "update_avatar": 
-          setAvatarSlots(data.payload); 
-          break;
-        case "update_mods": 
-          setModSlots(data.payload); 
-          break;
-        case "update_end1": 
-          setEnd1Cards(data.payload); 
-          break;
-        case "update_end2": 
-          setEnd2Cards(data.payload); 
-          break;
-        case "update_deck": 
-          setDeckCards(data.payload); 
-          break;
-        case "update_rotation": 
-          setAvatarRotation(data.payload); 
-          break;
-        default:
-          break;
-      }
-    };
-
-    socket.on("receive_action", handleReceiveAction);
-
-    return () => {
-      socket.off("receive_action", handleReceiveAction);
-    };
-  }, [socket, enemyRole, isEnemy]);
-
-  // --- Logic ---
-  const handleDrawCard = (card) => {
-    updateHand((prev) => [...prev, card]);
-  };
-
-  const resetGame = () => {
-    const empty = [];
-    const emptySlots = [null, null, null, null];
-    const emptyMods = [[], [], [], []];
-    const emptyRotation = [0, 0, 0, 0];
-
-    updateHand(empty);
-    updateMagic(emptySlots);
-    updateAvatar(emptySlots);
-    updateMods(emptyMods);
-    updateEnd1(empty);
-    updateEnd2(empty);
-    updateDeck(empty);
-    updateRotation(emptyRotation);
-  };
+  const handleDrawCard = (card) => gameState.updateHand((prev) => [...prev, card]);
 
   return (
-    <div
-      className="fillborad"
-      // 🔥 ปิดการคลิกทุกอย่างถ้าเป็นกระดานศัตรู
-      style={isEnemy ? { pointerEvents: "none", opacity: 0.9 } : {}}
-    >
+    <div className="fillborad" style={isEnemy ? { pointerEvents: "none", opacity: 0.8 } : {}}>
+      
+      {/* Effect */}
+      <ShuffleEffect isShuffling={gameState.isShuffling} />
+
       <div style={{ textAlign: "center", marginBottom: 4 }}>
         <span style={{ fontWeight: "bold" }}>
           กระดานของฝั่ง: {playerId} {isEnemy ? "(คู่แข่ง)" : "(คุณ)"}
@@ -187,20 +56,24 @@ function Bas({
       </div>
 
       <HandButton
-        handCards={handCards}
-        setHandCards={updateHand}
-        magicSlots={magicSlots}
-        setMagicSlots={updateMagic}
-        avatarSlots={avatarSlots}
-        setAvatarSlots={updateAvatar}
-        modSlots={modSlots}
-        setModSlots={updateMods}
-        end1Cards={end1Cards}
-        setEnd1Cards={updateEnd1}
-        end2Cards={end2Cards}
-        setEnd2Cards={updateEnd2}
+        handCards={isEnemy ? [] : gameState.handCards}
+        setHandCards={gameState.updateHand}
+        magicSlots={gameState.magicSlots}
+        setMagicSlots={gameState.updateMagic}
+        avatarSlots={uiAvatarSlots}
+        setAvatarSlots={gameState.updateAvatar}
+        modSlots={uiModSlots}
+        setModSlots={gameState.updateMods}
+        end1Cards={uiEnd1}
+        setEnd1Cards={gameState.updateEnd1}
+        end2Cards={uiEnd2}
+        setEnd2Cards={gameState.updateEnd2}
         isEnemy={isEnemy}
       />
+
+      <div className="main-bas">
+        <Battle />
+      </div>
 
       <div style={{ display: "flex" }}>
         <div className="start">
@@ -209,38 +82,46 @@ function Bas({
 
         <div className="center">
           <Center
-            magicSlots={magicSlots}
-            setMagicSlots={updateMagic}
-            avatarSlots={avatarSlots}
-            setAvatarSlots={updateAvatar}
-            modSlots={modSlots}
-            setModSlots={updateMods}
-            setHandCards={updateHand}
-            end1Cards={end1Cards}
-            setEnd1Cards={updateEnd1}
-            end2Cards={end2Cards}
-            setEnd2Cards={updateEnd2}
-            deckCards={deckCards}
-            setDeckCards={updateDeck}
-            avatarRotation={avatarRotation}
-            setAvatarRotation={updateRotation}
+            // State
+            magicSlots={gameState.magicSlots}
+            avatarSlots={uiAvatarSlots}
+            modSlots={uiModSlots}
+            end1Cards={uiEnd1}
+            end2Cards={uiEnd2}
+            deckCards={uiDeck}
+            avatarRotation={uiRotation}
+            // Updaters
+            setMagicSlots={gameState.updateMagic}
+            setAvatarSlots={gameState.updateAvatar}
+            setModSlots={gameState.updateMods}
+            setHandCards={gameState.updateHand}
+            setEnd1Cards={gameState.updateEnd1}
+            setEnd2Cards={gameState.updateEnd2}
+            setDeckCards={gameState.updateDeck}
+            setAvatarRotation={gameState.updateRotation}
+            // Actions
             isEnemy={isEnemy}
+            onAttack={startAttack}
           />
         </div>
 
         <div className="end1">
           <End1
+            // State
+            deckCards={uiDeck}
+            end1Cards={uiEnd1}
+            end2Cards={uiEnd2}
+            handCards={gameState.handCards}
+            // Updaters
+            setDeckCards={gameState.updateDeck}
+            setEnd1Cards={gameState.updateEnd1}
+            setEnd2Cards={gameState.updateEnd2}
+            setHandCards={gameState.updateHand}
+            // Actions
             onDrawCard={handleDrawCard}
-            deckCards={deckCards}
-            setDeckCards={updateDeck}
-            end1Cards={end1Cards}
-            setEnd1Cards={updateEnd1}
-            end2Cards={end2Cards}
-            setEnd2Cards={updateEnd2}
-            handCards={handCards}
-            setHandCards={updateHand}
-            resetGame={resetGame}
+            resetGame={gameState.resetGame}
             isEnemy={isEnemy}
+            onShuffleDeck={gameState.onShuffleDeck}
           />
         </div>
       </div>
