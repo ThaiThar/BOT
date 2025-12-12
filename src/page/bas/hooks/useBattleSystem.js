@@ -149,7 +149,7 @@ export function useBattleSystem({
       let titleMsg = "โจมตีฐานทัพ?";
       let textMsg = `เหลือการ์ดป้องกัน ${remainingCards} ใบ`;
       let confirmMsg = "⚔️ โจมตีการ์ด!";
-      let targetImageForAnim = "https://agenda.bkkthon.ac.th/card-game-api/uploads/backcard.jpg"; // หลังการ์ด
+      let targetImageForAnim = "https://agenda.bkkthon.ac.th/card-game-api/attack_start.png"; // หลังการ์ด
 
       // ✅ ถ้าการ์ดหมดแล้ว (เหลือ 0 ใบ) -> นี่คือการตีตัวผู้เล่น (Final Blow)
       if (remainingCards === 0) {

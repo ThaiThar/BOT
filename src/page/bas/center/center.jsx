@@ -3,12 +3,15 @@ import React from "react";
 import Swal from "sweetalert2";
 import "./centerstyle.css";
 
+// ✅ Import Overlay ตัวใหม่
+import SummonBattleOverlay from "../ui/SummonBattleOverlay";
+
 function Center({
-  magicSlots = [], 
+  magicSlots = [],
   setMagicSlots,
-  avatarSlots = [], 
+  avatarSlots = [],
   setAvatarSlots,
-  modSlots = [],    
+  modSlots = [],
   setModSlots,
   setHandCards,
   end1Cards,
@@ -18,11 +21,21 @@ function Center({
   deckCards,
   setDeckCards,
   isEnemy,
-  avatarRotation = [0,0,0,0], 
+  avatarRotation = [0, 0, 0, 0],
   setAvatarRotation,
   onAttack,
+
+
+  // ✅ รับ Props สำหรับระบบ Battle ใหม่
+  summonState,
+  startClash,        // ฟังก์ชันเริ่มสู้ (ศัตรูกด)
+  submitEnemyCard,   // ฟังก์ชันส่งการ์ดสู้ (ศัตรูเลือก)
+  submitSupportCard, // ฟังก์ชันส่งการ์ดกัน (เจ้าของเลือก)
+  submitEnemyCard2,
+  myRole,
+  handCards = []
 }) {
-  
+
   const previewOnly = (img) => {
     Swal.fire({
       title: "",
@@ -142,72 +155,96 @@ function Center({
     });
   };
 
-  // --------------------------------------------------
-  // UI RENDER
-  // --------------------------------------------------
+  // ==========================================
+  // ⚡ UI Helper: เช็คสถานะ Summon
+  // ==========================================
+  const isSummoning = summonState?.isActive;
+
   return (
-    <div 
-      className="boxcenter" 
-      // ❌ เอา style flexDirection ออก เพื่อให้มันเรียงตามธรรมชาติ
-      // การกลับหัวจะถูกจัดการโดย rotate(180deg) ใน BattleFieldOnline.jsx เอง
-    >
-      
-      {/* 1. AVATAR + MOD Zone */}
+    <div className="boxcenter" style={{ position: "relative" }}>
+
+      {/* ✅ 1. เรียกใช้ Overlay ตัวใหม่ (จัดการ UI Battle ทั้งหมดที่นี่) */}
+      <SummonBattleOverlay
+        summonState={summonState}
+        myRole={myRole}
+        handCards={handCards}
+        startClash={startClash}
+        submitEnemyCard={submitEnemyCard}
+        submitSupportCard={submitSupportCard}
+        submitEnemyCard2={submitEnemyCard2}
+      />
+
+      {/* ❌ ลบ Code Overlay เก่าออก เพื่อไม่ให้ซ้อนกัน */}
+
+      {/* 2. AVATAR + MOD Zone */}
       <div className="avatar-row">
-        {(avatarSlots || []).map((avatarImg, i) => (
-          <div key={i} className="avatar-block">
-            <div
-              className="avatarcenter"
-              style={{
-                background: (avatarRotation?.[i] !== 0) ? "transparent" : "rgba(255,255,255,0.1)",
-                transition: "0.25s",
-              }}
-            >
-              {avatarImg && (
-                <div className="avatar-img-wrapper">
-                  <img
-                    src={avatarImg}
-                    className="avatar-img"
-                    onClick={() => isEnemy ? previewOnly(avatarImg) : returnCardFromAvatar(i)}
-                    onContextMenu={(e) => {
-                      e.preventDefault();
-                      if (!isEnemy) rotateAvatar(i);
-                    }}
-                    style={{
-                      transform: `rotate(${avatarRotation?.[i] || 0}deg)`,
-                      transition: "0.25s ease",
-                    }}
-                  />
-                </div>
-              )}
-            </div>
+        {(avatarSlots || []).map((avatarImg, i) => {
+          // ถ้าช่องนี้กำลังรอ Summon ให้แสดงรูปการ์ดรอ (แต่จางๆ)
+          const isPending = isSummoning && summonState.slotIndex === i;
+          const displayImg = isPending ? summonState.cardImage : avatarImg;
 
-            {/* ปุ่มโจมตี */}
-            {!isEnemy && avatarImg && avatarRotation?.[i] === 0 && (
-              <button
-                className="atk-btn-card"
-                onClick={() => onAttack && onAttack(i)}
+          return (
+            <div key={i} className="avatar-block">
+              <div
+                className="avatarcenter"
+                style={{
+                  background: (avatarRotation?.[i] !== 0) ? "rgba(36, 233, 69, 0.86)" : "rgba(36, 233, 69, 0.86)",
+                  transition: "0.25s",
+                  // ถ้ากำลังรอลง ให้กรอบกระพริบ
+                  border: isPending ? '2px dashed yellow' : 'none'
+                }}
               >
-                ⚔️ โจมตี
-              </button>
-            )}
+                {displayImg && (
+                  <div className="avatar-img-wrapper">
+                    <img
+                      src={displayImg}
+                      className="avatar-img"
+                      // ถ้ากำลังรอลง ห้ามกดดู/หมุน
+                      onClick={() => {
+                        if (isPending) return;
+                        isEnemy ? previewOnly(displayImg) : returnCardFromAvatar(i);
+                      }}
+                      onContextMenu={(e) => {
+                        e.preventDefault();
+                        if (!isEnemy && !isPending) rotateAvatar(i);
+                      }}
+                      style={{
+                        transform: `rotate(${avatarRotation?.[i] || 0}deg)`,
+                        transition: "0.25s ease",
+                        opacity: isPending ? 0.5 : 1 // จางลงเมื่อรอ
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
 
-            {/* MODS */}
-            <div className="modificationcard-wrapper">
-              {(modSlots[i] || []).map((modImg, idx) => (
-                <img
-                  key={idx}
-                  src={modImg}
-                  className="mod-img"
-                  onClick={() => isEnemy ? previewOnly(modImg) : returnCardFromMod(i, idx)}
-                />
-              ))}
+              {/* ปุ่มโจมตี (ซ่อนตอน Pending) */}
+              {!isEnemy && avatarImg && !isPending && avatarRotation?.[i] === 0 && (
+                <button
+                  className="atk-btn-card"
+                  onClick={() => onAttack && onAttack(i)}
+                >
+                  ⚔️ โจมตี
+                </button>
+              )}
+
+              {/* MODS */}
+              <div className="modificationcard-wrapper">
+                {(modSlots[i] || []).map((modImg, idx) => (
+                  <img
+                    key={idx}
+                    src={modImg}
+                    className="mod-img"
+                    onClick={() => isEnemy ? previewOnly(modImg) : returnCardFromMod(i, idx)}
+                  />
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
-      {/* 2. MAGIC ZONE */}
+      {/* 3. MAGIC ZONE */}
       <div className="centermagic">
         {(magicSlots || []).map((img, i) => (
           <div key={i} className="magiccenter">

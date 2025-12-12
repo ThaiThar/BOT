@@ -1,0 +1,212 @@
+/* Overlay เต็มจอ */
+.summon-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(0, 0, 0, 0.9); /* พื้นหลังดำโปร่งแสง */
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    backdrop-filter: blur(8px); /* เบลอฉากหลัง */
+    animation: fadeIn 0.3s ease;
+}
+
+/* Animations */
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+@keyframes glowGold { from { box-shadow: 0 0 10px gold; } to { box-shadow: 0 0 30px gold; } }
+
+/* --- Pending Stage --- */
+.card-preview {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.main-card.glow {
+    width: 220px;
+    border-radius: 12px;
+    animation: glowGold 1s infinite alternate;
+}
+
+.timer-badge {
+    position: absolute;
+    top: -15px; right: -15px;
+    width: 50px; height: 50px;
+    background: #ff4757;
+    border: 3px solid white;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+}
+
+.battle-btn {
+    background: linear-gradient(135deg, #ff416c, #ff4b2b);
+    color: white;
+    font-size: 1.5rem;
+    padding: 15px 40px;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    box-shadow: 0 0 20px rgba(255, 75, 43, 0.6);
+    animation: pulse 1s infinite;
+    transition: transform 0.2s;
+}
+.battle-btn:hover { transform: scale(1.1); }
+
+/* --- Battle Arena --- */
+.battle-arena {
+    background: radial-gradient(circle, #2c0505 0%, #000000 100%);
+}
+
+.battle-title {
+    font-size: 3rem;
+    color: #ff4757;
+    text-shadow: 0 0 10px red;
+    margin-bottom: 10px;
+}
+
+.battle-timer {
+    font-size: 1.5rem;
+    color: #ffa502;
+}
+
+.arena-grid {
+    display: flex;
+    gap: 50px;
+    margin: 40px 0;
+    align-items: center;
+}
+
+.card-slot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.slot-label {
+    margin-bottom: 10px;
+    font-size: 1.2rem;
+    color: #ccc;
+}
+
+.arena-card {
+    width: 180px;
+    height: 250px;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 3px solid white;
+    transition: all 0.3s;
+}
+
+.arena-card.main { border-color: gold; box-shadow: 0 0 20px gold; }
+.arena-card.enemy { border-color: #ff4757; box-shadow: 0 0 20px #ff4757; }
+.arena-card.support { border-color: #2ed573; box-shadow: 0 0 20px #2ed573; }
+
+.empty-slot {
+    width: 180px;
+    height: 250px;
+    border: 3px dashed #555;
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(255,255,255,0.05);
+    color: #777;
+    font-size: 1rem;
+}
+
+.select-btn {
+    background: #1e90ff;
+    color: white;
+    font-size: 1.3rem;
+    padding: 12px 30px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(30, 144, 255, 0.4);
+}
+.select-btn:hover { background: #3742fa; }
+
+.status-wait {
+    font-size: 1.2rem;
+    color: #aaa;
+    animation: pulse 2s infinite;
+}
+
+/* src/components/Bas/ui/SummonBattleOverlay.css */
+
+/* ปรับ Z-Index ให้สูง แต่ต้องน้อยกว่า Swal (Swal ปกติคือ 1060) */
+.summon-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 1050; /* ✅ ลดลงจาก 9999 เหลือ 1050 */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    backdrop-filter: blur(8px);
+    animation: fadeIn 0.3s ease;
+}
+
+/* ✅ Class พิเศษสำหรับ Swal เพื่อดันให้สูงกว่า Overlay แน่นอน */
+.swal-z-index-fix {
+    z-index: 1100 !important;
+}
+
+/* ... CSS อื่นๆ เหมือนเดิม ... */
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+@keyframes glowGold { from { box-shadow: 0 0 10px gold; } to { box-shadow: 0 0 30px gold; } }
+
+.card-preview { position: relative; margin-bottom: 20px; }
+.main-card.glow { width: 220px; border-radius: 12px; animation: glowGold 1s infinite alternate; }
+.timer-badge {
+    position: absolute; top: -15px; right: -15px;
+    width: 50px; height: 50px; background: #ff4757;
+    border: 3px solid white; border-radius: 50%;
+    display: flex; justify-content: center; alignItems: center;
+    font-size: 1.5rem; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+}
+.status-text { text-align: center; }
+.enemy-action { text-align: center; }
+.battle-btn {
+    background: linear-gradient(135deg, #ff416c, #ff4b2b);
+    color: white; font-size: 1.5rem; padding: 15px 40px;
+    border: none; border-radius: 50px; cursor: pointer;
+    box-shadow: 0 0 20px rgba(255, 75, 43, 0.6);
+    animation: pulse 1s infinite; transition: transform 0.2s;
+}
+.battle-btn:hover { transform: scale(1.1); }
+.battle-arena { background: radial-gradient(circle, #2c0505 0%, #000000 100%); }
+.battle-header { text-align: center; margin-bottom: 20px; }
+.battle-title { font-size: 3rem; color: #ff4757; text-shadow: 0 0 10px red; margin: 0; }
+.battle-timer { font-size: 1.5rem; color: #ffa502; }
+.arena-grid { display: flex; gap: 40px; margin: 20px 0; align-items: center; justify-content: center; }
+.card-slot { display: flex; flexDirection: column; align-items: center; }
+.slot-label { margin-bottom: 10px; font-size: 1rem; color: #ccc; }
+.arena-card { width: 150px; height: 210px; object-fit: cover; border-radius: 10px; border: 3px solid white; transition: all 0.3s; }
+.arena-card.main { border-color: gold; box-shadow: 0 0 20px gold; }
+.arena-card.enemy { border-color: #ff4757; box-shadow: 0 0 20px #ff4757; }
+.arena-card.support { border-color: #2ed573; box-shadow: 0 0 20px #2ed573; }
+.empty-slot {
+    width: 150px; height: 210px; border: 3px dashed #555; border-radius: 10px;
+    display: flex; justify-content: center; align-items: center;
+    background: rgba(255,255,255,0.05); color: #777; font-size: 1rem;
+}
+.action-bar { display: flex; flex-direction: column; align-items: center; gap: 10px; min-height: 60px; }
+.select-btn {
+    background: #1e90ff; color: white; font-size: 1.2rem; padding: 10px 30px;
+    border: none; border-radius: 8px; cursor: pointer;
+    box-shadow: 0 4px 15px rgba(30, 144, 255, 0.4);
+}
+.select-btn.danger { background: #ff4757; box-shadow: 0 4px 15px rgba(255, 71, 87, 0.4); }
+.select-btn:hover { filter: brightness(1.2); }
+.status-wait { font-size: 1.2rem; color: #aaa; animation: pulse 2s infinite; }

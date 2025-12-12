@@ -1,3 +1,4 @@
+// src/components/Bas/hand/HandButton.jsx
 import React from "react";
 import Swal from "sweetalert2";
 import "./handbutton.css";
@@ -8,7 +9,10 @@ function HandButton({
     avatarSlots, setAvatarSlots,
     modSlots, setModSlots,
     end1Cards, setEnd1Cards,
-    end2Cards, setEnd2Cards
+    end2Cards, setEnd2Cards,
+    
+    // ✅ รับ Props initiateSummon เข้ามา (ต้องแก้ใน Bas.jsx ให้ส่งมาด้วยนะ)
+    initiateSummon
 }) {
 
     // ------------------------------
@@ -33,17 +37,25 @@ function HandButton({
     };
 
     // ------------------------------
-    // ลง Avatar
+    // ลง Avatar (✅ แก้ไขให้เรียก Summon System)
     // ------------------------------
     const dropToAvatar = (img, handIndex) => {
         const idx = avatarSlots.indexOf(null);
         if (idx === -1) return Swal.fire("❌ Avatar Zone เต็มแล้ว");
 
-        const updated = [...avatarSlots];
-        updated[idx] = img;
-        setAvatarSlots(updated);
-
-        removeCardFromHand(handIndex);
+        // ⚠️ ไม่เรียก setAvatarSlots โดยตรงแล้ว
+        // เรียก initiateSummon แทน -> มันจะลบการ์ดจากมือและเริ่มนับถอยหลังให้
+        
+        if (initiateSummon) {
+            initiateSummon(img, idx); // img คือรูป, idx คือช่องที่จะลง
+        } else {
+            console.error("initiateSummon function is missing!");
+            // Fallback (เผื่อฉุกเฉิน)
+            const updated = [...avatarSlots];
+            updated[idx] = img;
+            setAvatarSlots(updated);
+            removeCardFromHand(handIndex);
+        }
     };
 
     // ------------------------------
@@ -64,11 +76,12 @@ function HandButton({
             if (!res.isConfirmed) return;
 
             const avatarIndex = parseInt(res.value);
+            // เช็คว่ามี Avatar อยู่ไหม (ถ้า Avatar กำลัง Pending ก็ลง Mod ไม่ได้นะ)
             if (!avatarSlots[avatarIndex])
-                return Swal.fire("❌ Avatar ยังไม่มีการ์ด");
+                return Swal.fire("❌ Avatar ยังไม่มีการ์ด (หรือกำลังร่าย)");
 
             const updated = [...modSlots];
-            updated[avatarIndex] = [...updated[avatarIndex], img];
+            updated[avatarIndex] = [...(updated[avatarIndex] || []), img]; // กันเหนียวเผื่อเป็น undefined
             setModSlots(updated);
 
             removeCardFromHand(handIndex);
@@ -111,7 +124,7 @@ function HandButton({
             document.getElementById("btnAvatar").onclick = () => {
                 disableAll();
                 Swal.close();
-                dropToAvatar(img, handIndex);
+                dropToAvatar(img, handIndex); // เรียกตัวใหม่
             };
 
             document.getElementById("btnMod").onclick = () => {
@@ -164,7 +177,11 @@ function HandButton({
             color: "#fff",
         });
 
-        window.openCardAction = openCardAction;
+        window.openCardAction = (img, idx) => {
+             // ปิด Popup Hand ก่อนเปิด Action Menu ไม่งั้นซ้อนกัน
+             Swal.close();
+             setTimeout(() => openCardAction(img, idx), 300); // รอ animation ปิดนิดนึง
+        };
     };
 
     return (

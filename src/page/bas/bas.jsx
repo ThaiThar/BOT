@@ -11,18 +11,21 @@ import HandButton from "./hand/HandButton.jsx";
 import Battle from "../battle/battle.jsx";
 import ShuffleEffect from "./ui/ShuffleEffect.jsx";
 import BattleClash from "./ui/BattleClash.jsx";
-import SnoopOverlay from "./ui/SnoopOverlay.jsx"; // ✅ Import
+import SnoopOverlay from "./ui/SnoopOverlay.jsx";
 
 // Hooks
 import { useBattleSystem } from "./hooks/useBattleSystem";
 
 function Bas({
-  gameState, 
+  gameState,
   playerId = "P1",
   isEnemy = false,
-  myRole, // ✅ รับ myRole เข้ามาเพื่อส่งให้ SnoopOverlay
+  myRole,
 }) {
-  
+
+  // 1. ดึงค่าจาก Turn Module
+  const { isMyTurn, endTurn } = gameState;
+
   // 2. เรียกใช้ Battle System
   const { startAttack } = useBattleSystem({
     isEnemy,
@@ -36,10 +39,8 @@ function Bas({
     broadcast: gameState.broadcast,
     updateRotation: gameState.updateRotation,
     triggerBattleAnim: gameState.triggerBattleAnim,
-    
-    // ส่งข้อมูลสำหรับตีบ้าน
-    enemyStartCards: gameState.enemyStartCards, 
-    setEnemyStartCards: gameState.setEnemyStartCards, 
+    enemyStartCards: gameState.enemyStartCards,
+    setEnemyStartCards: gameState.setEnemyStartCards,
   });
 
   // 3. เตรียมข้อมูล UI
@@ -49,8 +50,6 @@ function Bas({
   const uiEnd2 = isEnemy ? gameState.enemyEnd2 : gameState.end2Cards;
   const uiRotation = isEnemy ? gameState.enemyRotation : gameState.avatarRotation;
   const uiDeck = isEnemy ? gameState.enemyDeck : gameState.deckCards;
-
-  // ✅ เลือก Magic Slots ให้ถูกฝั่ง
   const uiMagicSlots = isEnemy ? gameState.enemyMagicSlots : gameState.magicSlots;
 
   // 4. เตรียมข้อมูล UI สำหรับ Start
@@ -58,9 +57,9 @@ function Bas({
   const uiStartImages = isEnemy ? gameState.enemyStartImages : gameState.startImages;
   const uiStartStage = isEnemy ? gameState.enemyStartStage : gameState.startStage;
 
-  const setStartCards = isEnemy ? () => {} : gameState.updateStartCards;
-  const setStartImages = isEnemy ? () => {} : gameState.updateStartImages;
-  const setStartStage = isEnemy ? () => {} : gameState.updateStartStage;
+  const setStartCards = isEnemy ? () => { } : gameState.updateStartCards;
+  const setStartImages = isEnemy ? () => { } : gameState.updateStartImages;
+  const setStartStage = isEnemy ? () => { } : gameState.updateStartStage;
 
   const handleDrawCard = (card) =>
     gameState.updateHand((prev) => [...prev, card]);
@@ -68,16 +67,66 @@ function Bas({
   return (
     <div
       className="fillborad"
-      style={isEnemy ? { opacity: 1 } : {}} 
+      style={{
+        // 🔒 Visual Lock: ถ้าไม่ใช่เทิร์นเรา และไม่ใช่กระดานศัตรู ให้จางลงและกดไม่ได้
+        opacity: (!isMyTurn && !isEnemy) ? 0.85 : 1,
+        // pointerEvents: (!isMyTurn && !isEnemy) ? 'none' : 'auto', // ปิดบรรทัดนี้ถ้าอยากให้กดดูการ์ดได้ แต่กด Action ไม่ได้ (เพราะเรามี Guard ใน Hook แล้ว)
+        transition: 'all 0.3s ease'
+      }}
     >
-      {/* ✅ ใส่ Snoop Overlay (เฉพาะกระดานเรา) */}
+      {/* -------------------------------------------------- */}
+      {/* 🔴 ส่วนควบคุมเทิร์น (แสดงเฉพาะฝั่งเรา) */}
+      {/* -------------------------------------------------- */}
+      {!isEnemy && (
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          gap: '20px',
+          marginBottom: '10px',
+          padding: '10px',
+          background: 'rgba(0,0,0,0.5)',
+          borderRadius: '10px'
+        }}>
+          <div style={{
+            color: isMyTurn ? '#2ecc71' : '#e74c3c',
+            fontWeight: 'bold',
+            fontSize: '1.2rem',
+            textShadow: '1px 1px 2px black'
+          }}>
+            {isMyTurn ? "🟢 ตาของคุณ (Your Turn)" : "⏳ รอฝ่ายตรงข้าม (Opponent's Turn)"}
+          </div>
+
+          {isMyTurn && (
+            <button
+              onClick={endTurn}
+              style={{
+                backgroundColor: '#e67e22',
+                color: 'white',
+                border: '2px solid #d35400',
+                borderRadius: '5px',
+                padding: '8px 20px',
+                cursor: 'pointer',
+                fontSize: '1rem',
+                fontWeight: 'bold',
+                boxShadow: '0 4px 6px rgba(0,0,0,0.3)'
+              }}
+              className="hover-effect"
+            >
+              ⏭️ จบเทิร์น
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* ✅ ใส่ Snoop Overlay */}
       {!isEnemy && (
         <SnoopOverlay
           isOpen={gameState.snoopState.isOpen}
           cards={gameState.snoopState.cards}
           revealedIndexes={gameState.snoopState.revealedIndexes}
           ownerRole={gameState.snoopState.owner}
-          myRole={myRole} 
+          myRole={myRole}
           onFlip={gameState.flipSnoopCard}
           onSelect={gameState.endSnoopSession}
         />
@@ -104,7 +153,7 @@ function Bas({
       <HandButton
         handCards={isEnemy ? [] : gameState.handCards}
         setHandCards={gameState.updateHand}
-        magicSlots={gameState.magicSlots} 
+        magicSlots={gameState.magicSlots}
         setMagicSlots={gameState.updateMagic}
         avatarSlots={uiAvatarSlots}
         setAvatarSlots={gameState.updateAvatar}
@@ -115,6 +164,9 @@ function Bas({
         end2Cards={uiEnd2}
         setEnd2Cards={gameState.updateEnd2}
         isEnemy={isEnemy}
+
+        // ✅ ส่ง initiateSummon ไปให้ HandButton ใช้ตอน Drop การ์ด
+        initiateSummon={gameState.initiateSummon}
       />
 
       <div className="main-bas">
@@ -136,14 +188,14 @@ function Bas({
 
         <div className="center">
           <Center
-            magicSlots={uiMagicSlots} 
+            magicSlots={uiMagicSlots}
             avatarSlots={uiAvatarSlots}
             modSlots={uiModSlots}
             end1Cards={uiEnd1}
             end2Cards={uiEnd2}
             deckCards={uiDeck}
             avatarRotation={uiRotation}
-            setMagicSlots={isEnemy ? () => {} : gameState.updateMagic}
+            setMagicSlots={isEnemy ? () => { } : gameState.updateMagic}
             setAvatarSlots={gameState.updateAvatar}
             setModSlots={gameState.updateMods}
             setHandCards={gameState.updateHand}
@@ -153,6 +205,19 @@ function Bas({
             setAvatarRotation={gameState.updateRotation}
             isEnemy={isEnemy}
             onAttack={startAttack}
+
+
+            // ✅ ส่ง Props ของ Summon System เข้าไปที่ Center
+            summonState={gameState.summonState}
+            counterSummon={gameState.counterSummon}
+            handCards={gameState.handCards} // ต้องใช้เพื่อเลือกการ์ดมา Counter
+
+            startClash={gameState.startClash}
+            submitEnemyCard={gameState.submitEnemyCard}
+            submitSupportCard={gameState.submitSupportCard}
+            submitEnemyCard2={gameState.submitEnemyCard2}
+
+            myRole={myRole} //
           />
         </div>
 
@@ -171,7 +236,6 @@ function Bas({
             isEnemy={isEnemy}
             onShuffleDeck={gameState.onShuffleDeck}
             broadcast={gameState.broadcast}
-            // ✅✅✅ เพิ่มบรรทัดนี้ครับ ไม่งั้น End1 จะเรียกฟังก์ชันไม่ได้ ✅✅✅
             startSnoopSession={gameState.startSnoopSession}
           />
         </div>
