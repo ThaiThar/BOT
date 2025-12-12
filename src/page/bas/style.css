@@ -8,7 +8,7 @@
 .start{
     width: 200px;
     height: 650px;
-    background-color: red;
+    background-image: url("../../assets/fieldBOT/FnfieldAllicon/LivezoneiconbetaFN.png");
 }
 .center{
     height: 650px;
@@ -19,7 +19,7 @@
 .end1{
     width: 300px;
     height: 650px;
-    background-color: yellow;
+    background-image: url("../../assets/fieldBOT/FnfieldAllicon/DeckzoneinconFN.png");
 }
 .handcard{
     width: 180px;
