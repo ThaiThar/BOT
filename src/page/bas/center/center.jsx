@@ -1,4 +1,3 @@
-// src/components/Bas/center/center.jsx
 import React from "react";
 import Swal from "sweetalert2";
 import "./centerstyle.css";
@@ -25,20 +24,42 @@ function Center({
   setAvatarRotation,
   onAttack,
 
-
-  // ✅ รับ Props สำหรับระบบ Battle ใหม่
+  // ✅ Battle system
   summonState,
-  startClash,        // ฟังก์ชันเริ่มสู้ (ศัตรูกด)
-  submitEnemyCard,   // ฟังก์ชันส่งการ์ดสู้ (ศัตรูเลือก)
-  submitSupportCard, // ฟังก์ชันส่งการ์ดกัน (เจ้าของเลือก)
+  startClash,
+  submitEnemyCard,
+  submitSupportCard,
   submitEnemyCard2,
   myRole,
-  handCards = []
+  handCards = [],
 }) {
+  // =================================================
+  // 🛡 SAFETY GUARDS (แก้ .map พังจาก socket)
+  // =================================================
+  const safeMagicSlots = Array.isArray(magicSlots)
+    ? magicSlots
+    : [null, null, null, null];
 
+  const safeAvatarSlots = Array.isArray(avatarSlots)
+    ? avatarSlots
+    : [null, null, null, null];
+
+  // ⭐ สำคัญสุด: modSlots ต้องเป็น array 4 ช่อง และแต่ละช่องต้องเป็น array
+  const safeModSlots = Array.isArray(modSlots)
+    ? [0, 1, 2, 3].map((i) =>
+        Array.isArray(modSlots[i]) ? modSlots[i] : []
+      )
+    : [[], [], [], []];
+
+  const safeRotation = Array.isArray(avatarRotation)
+    ? avatarRotation
+    : [0, 0, 0, 0];
+
+  // =================================================
+  // 🖼 Preview Only
+  // =================================================
   const previewOnly = (img) => {
     Swal.fire({
-      title: "",
       html: `<img src="${img}" style="width:450px; border-radius:12px;" />`,
       showConfirmButton: false,
       background: "#111",
@@ -47,15 +68,21 @@ function Center({
     });
   };
 
+  // =================================================
+  // 🔄 Rotate Avatar
+  // =================================================
   const rotateAvatar = (index) => {
-    if (isEnemy) return;
+    if (isEnemy || !setAvatarRotation) return;
     setAvatarRotation((prev) => {
-      const next = [...prev];
+      const next = [...(Array.isArray(prev) ? prev : [0, 0, 0, 0])];
       next[index] = next[index] === 0 ? 90 : 0;
       return next;
     });
   };
 
+  // =================================================
+  // 🎯 Choose Return Action
+  // =================================================
   const chooseAction = (img, onReturn) => {
     if (isEnemy) return previewOnly(img);
 
@@ -90,64 +117,72 @@ function Center({
     });
   };
 
+  // =================================================
+  // 🔁 Return from Magic
+  // =================================================
   const returnCardFromMagic = (index) => {
-    const card = magicSlots[index];
+    const card = safeMagicSlots[index];
     if (!card) return;
 
     chooseAction(card, (action) => {
-      if (action === "hand") setHandCards((prev) => [...prev, card]);
-      if (action === "end1") setEnd1Cards((prev) => [...prev, card]);
-      if (action === "end2") setEnd2Cards((prev) => [...prev, card]);
-      if (action === "deck") setDeckCards((prev) => [...prev, card]);
+      if (action === "hand") setHandCards((p) => [...p, card]);
+      if (action === "end1") setEnd1Cards((p) => [...p, card]);
+      if (action === "end2") setEnd2Cards((p) => [...p, card]);
+      if (action === "deck") setDeckCards((p) => [...p, card]);
 
-      const updated = [...magicSlots];
+      const updated = [...safeMagicSlots];
       updated[index] = null;
       setMagicSlots(updated);
     });
   };
 
+  // =================================================
+  // 🔁 Return from Avatar (+ Mods)
+  // =================================================
   const returnCardFromAvatar = (index) => {
-    const avatarCard = avatarSlots[index];
+    const avatarCard = safeAvatarSlots[index];
     if (!avatarCard) return;
 
-    const modsOfThisAvatar = modSlots[index] || [];
+    const modsOfThisAvatar = safeModSlots[index] || [];
 
     chooseAction(avatarCard, (action) => {
       const returnItems = [avatarCard, ...modsOfThisAvatar];
 
-      if (action === "hand") setHandCards((prev) => [...prev, ...returnItems]);
-      if (action === "end1") setEnd1Cards((prev) => [...prev, ...returnItems]);
-      if (action === "end2") setEnd2Cards((prev) => [...prev, ...returnItems]);
-      if (action === "deck") setDeckCards((prev) => [...prev, ...returnItems]);
+      if (action === "hand") setHandCards((p) => [...p, ...returnItems]);
+      if (action === "end1") setEnd1Cards((p) => [...p, ...returnItems]);
+      if (action === "end2") setEnd2Cards((p) => [...p, ...returnItems]);
+      if (action === "deck") setDeckCards((p) => [...p, ...returnItems]);
 
-      const updatedAv = [...avatarSlots];
+      const updatedAv = [...safeAvatarSlots];
       updatedAv[index] = null;
       setAvatarSlots(updatedAv);
 
-      const updatedMods = [...modSlots];
+      const updatedMods = [...safeModSlots];
       updatedMods[index] = [];
       setModSlots(updatedMods);
 
-      setAvatarRotation((prev) => {
-        const next = [...prev];
+      setAvatarRotation?.((prev) => {
+        const next = [...(Array.isArray(prev) ? prev : [0, 0, 0, 0])];
         next[index] = 0;
         return next;
       });
     });
   };
 
+  // =================================================
+  // 🔁 Return from Mod
+  // =================================================
   const returnCardFromMod = (avatarIndex, modIndex) => {
-    if (!modSlots[avatarIndex]) return;
-    const card = modSlots[avatarIndex][modIndex];
+    const card = safeModSlots[avatarIndex]?.[modIndex];
     if (!card) return;
 
     chooseAction(card, (action) => {
-      if (action === "hand") setHandCards((prev) => [...prev, card]);
-      if (action === "end1") setEnd1Cards((prev) => [...prev, card]);
-      if (action === "end2") setEnd2Cards((prev) => [...prev, card]);
-      if (action === "deck") setDeckCards((prev) => [...prev, card]);
+      if (action === "hand") setHandCards((p) => [...p, card]);
+      if (action === "end1") setEnd1Cards((p) => [...p, card]);
+      if (action === "end2") setEnd2Cards((p) => [...p, card]);
+      if (action === "deck") setDeckCards((p) => [...p, card]);
 
-      const updated = [...modSlots];
+      const updated = [...safeModSlots];
       updated[avatarIndex] = updated[avatarIndex].filter(
         (_, i) => i !== modIndex
       );
@@ -155,15 +190,17 @@ function Center({
     });
   };
 
-  // ==========================================
-  // ⚡ UI Helper: เช็คสถานะ Summon
-  // ==========================================
+  // =================================================
+  // ⚡ Summon State
+  // =================================================
   const isSummoning = summonState?.isActive;
 
+  // =================================================
+  // 🧩 RENDER
+  // =================================================
   return (
     <div className="boxcenter" style={{ position: "relative" }}>
-
-      {/* ✅ 1. เรียกใช้ Overlay ตัวใหม่ (จัดการ UI Battle ทั้งหมดที่นี่) */}
+      {/* 🔥 Overlay */}
       <SummonBattleOverlay
         summonState={summonState}
         myRole={myRole}
@@ -174,24 +211,21 @@ function Center({
         submitEnemyCard2={submitEnemyCard2}
       />
 
-      {/* ❌ ลบ Code Overlay เก่าออก เพื่อไม่ให้ซ้อนกัน */}
-
-      {/* 2. AVATAR + MOD Zone */}
+      {/* ================= AVATAR ZONE ================= */}
       <div className="avatar-row">
-        {(avatarSlots || []).map((avatarImg, i) => {
-          // ถ้าช่องนี้กำลังรอ Summon ให้แสดงรูปการ์ดรอ (แต่จางๆ)
-          const isPending = isSummoning && summonState.slotIndex === i;
-          const displayImg = isPending ? summonState.cardImage : avatarImg;
+        {safeAvatarSlots.map((avatarImg, i) => {
+          const isPending =
+            isSummoning && summonState?.slotIndex === i;
+          const displayImg = isPending
+            ? summonState.cardImage
+            : avatarImg;
 
           return (
             <div key={i} className="avatar-block">
               <div
                 className="avatarcenter"
                 style={{
-                  background: (avatarRotation?.[i] !== 0) ? "rgba(36, 233, 69, 0.86)" : "rgba(36, 233, 69, 0.86)",
-                  transition: "0.25s",
-                  // ถ้ากำลังรอลง ให้กรอบกระพริบ
-                  border: isPending ? '2px dashed yellow' : 'none'
+                  border: isPending ? "2px dashed yellow" : "none",
                 }}
               >
                 {displayImg && (
@@ -199,43 +233,49 @@ function Center({
                     <img
                       src={displayImg}
                       className="avatar-img"
-                      // ถ้ากำลังรอลง ห้ามกดดู/หมุน
                       onClick={() => {
                         if (isPending) return;
-                        isEnemy ? previewOnly(displayImg) : returnCardFromAvatar(i);
+                        isEnemy
+                          ? previewOnly(displayImg)
+                          : returnCardFromAvatar(i);
                       }}
                       onContextMenu={(e) => {
                         e.preventDefault();
                         if (!isEnemy && !isPending) rotateAvatar(i);
                       }}
                       style={{
-                        transform: `rotate(${avatarRotation?.[i] || 0}deg)`,
+                        transform: `rotate(${safeRotation[i]}deg)`,
+                        opacity: isPending ? 0.5 : 1,
                         transition: "0.25s ease",
-                        opacity: isPending ? 0.5 : 1 // จางลงเมื่อรอ
                       }}
                     />
                   </div>
                 )}
               </div>
 
-              {/* ปุ่มโจมตี (ซ่อนตอน Pending) */}
-              {!isEnemy && avatarImg && !isPending && avatarRotation?.[i] === 0 && (
-                <button
-                  className="atk-btn-card"
-                  onClick={() => onAttack && onAttack(i)}
-                >
-                  ⚔️ โจมตี
-                </button>
-              )}
+              {!isEnemy &&
+                avatarImg &&
+                !isPending &&
+                safeRotation[i] === 0 && (
+                  <button
+                    className="atk-btn-card"
+                    onClick={() => onAttack?.(i)}
+                  >
+                    ⚔️ โจมตี
+                  </button>
+                )}
 
-              {/* MODS */}
               <div className="modificationcard-wrapper">
-                {(modSlots[i] || []).map((modImg, idx) => (
+                {safeModSlots[i].map((modImg, idx) => (
                   <img
                     key={idx}
                     src={modImg}
                     className="mod-img"
-                    onClick={() => isEnemy ? previewOnly(modImg) : returnCardFromMod(i, idx)}
+                    onClick={() =>
+                      isEnemy
+                        ? previewOnly(modImg)
+                        : returnCardFromMod(i, idx)
+                    }
                   />
                 ))}
               </div>
@@ -244,21 +284,50 @@ function Center({
         })}
       </div>
 
-      {/* 3. MAGIC ZONE */}
+      {/* ================= MAGIC ZONE ================= */}
       <div className="centermagic">
-        {(magicSlots || []).map((img, i) => (
-          <div key={i} className="magiccenter">
-            {img && (
-              <img
-                src={img}
-                className="center-img"
-                onClick={() => isEnemy ? previewOnly(img) : returnCardFromMagic(i)}
-              />
-            )}
-          </div>
-        ))}
-      </div>
+        {safeMagicSlots.map((img, i) => {
+          const magicId = `magic-${i}`;
+          const isPending =
+            isSummoning && summonState?.slotIndex === magicId;
+          const displayImg = isPending
+            ? summonState.cardImage
+            : img;
 
+          return (
+            <div key={i} className="magiccenter">
+              <div
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  border: isPending ? "2px dashed yellow" : "none",
+                  borderRadius: "8px",
+                }}
+              >
+                {displayImg && (
+                  <img
+                    src={displayImg}
+                    className="center-img"
+                    onClick={() => {
+                      if (isPending) return;
+                      isEnemy
+                        ? previewOnly(displayImg)
+                        : returnCardFromMagic(i);
+                    }}
+                    style={{
+                      opacity: isPending ? 0.5 : 1,
+                      transition: "0.25s ease",
+                    }}
+                  />
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

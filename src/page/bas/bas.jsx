@@ -1,5 +1,4 @@
-// src/components/Bas/Bas.jsx
-import React from "react";
+import React, { useState, useEffect } from "react";
 import "./style.css";
 import "../bas/end1/functions/HinduGodMode.css";
 
@@ -13,6 +12,7 @@ import ShuffleEffect from "./ui/ShuffleEffect.jsx";
 import BattleClash from "./ui/BattleClash.jsx";
 import SnoopOverlay from "./ui/SnoopOverlay.jsx";
 
+
 // Hooks
 import { useBattleSystem } from "./hooks/useBattleSystem";
 
@@ -22,11 +22,19 @@ function Bas({
   isEnemy = false,
   myRole,
 }) {
+  // =================================================
+  // 🧠 Local State
+  // =================================================
+  const [enemyHandCount, setEnemyHandCount] = useState(0);
 
-  // 1. ดึงค่าจาก Turn Module
+  // =================================================
+  // 🔄 Turn Control
+  // =================================================
   const { isMyTurn, endTurn } = gameState;
 
-  // 2. เรียกใช้ Battle System
+  // =================================================
+  // ⚔️ Battle System
+  // =================================================
   const { startAttack } = useBattleSystem({
     isEnemy,
     avatarSlots: gameState.avatarSlots,
@@ -43,75 +51,153 @@ function Bas({
     setEnemyStartCards: gameState.setEnemyStartCards,
   });
 
-  // 3. เตรียมข้อมูล UI
-  const uiAvatarSlots = isEnemy ? gameState.enemyAvatarSlots : gameState.avatarSlots;
-  const uiModSlots = isEnemy ? gameState.enemyModSlots : gameState.modSlots;
-  const uiEnd1 = isEnemy ? gameState.enemyEnd1 : gameState.end1Cards;
-  const uiEnd2 = isEnemy ? gameState.enemyEnd2 : gameState.end2Cards;
-  const uiRotation = isEnemy ? gameState.enemyRotation : gameState.avatarRotation;
-  const uiDeck = isEnemy ? gameState.enemyDeck : gameState.deckCards;
-  const uiMagicSlots = isEnemy ? gameState.enemyMagicSlots : gameState.magicSlots;
+  // =================================================
+  // 📤 ส่งจำนวนการ์ดในมือของเราไปหาอีกฝั่ง
+  // =================================================
+  useEffect(() => {
+    if (isEnemy) return;
+    if (!gameState?.broadcast) return;
+    if (!Array.isArray(gameState.handCards)) return;
 
-  // 4. เตรียมข้อมูล UI สำหรับ Start
-  const uiStartCards = isEnemy ? gameState.enemyStartCards : gameState.startCards;
-  const uiStartImages = isEnemy ? gameState.enemyStartImages : gameState.startImages;
-  const uiStartStage = isEnemy ? gameState.enemyStartStage : gameState.startStage;
+    gameState.broadcast({
+      type: "UPDATE_HAND_COUNT",
+      count: gameState.handCards.length,
+    });
+  }, [gameState.handCards, isEnemy, gameState.broadcast]);
 
-  const setStartCards = isEnemy ? () => { } : gameState.updateStartCards;
-  const setStartImages = isEnemy ? () => { } : gameState.updateStartImages;
-  const setStartStage = isEnemy ? () => { } : gameState.updateStartStage;
+  // =================================================
+  // 📥 รับจำนวนการ์ดในมือของฝ่ายตรงข้าม
+  // =================================================
+  useEffect(() => {
+    if (!gameState?.onBroadcast) return;
 
-  const handleDrawCard = (card) =>
+    const unsubscribe = gameState.onBroadcast((msg) => {
+      if (!msg || typeof msg !== "object") return;
+
+      if (msg.type === "UPDATE_HAND_COUNT") {
+        setEnemyHandCount(Number(msg.count || 0));
+      }
+    });
+
+    return () => {
+      if (typeof unsubscribe === "function") unsubscribe();
+    };
+  }, [gameState]);
+
+  // =================================================
+  // 🧩 UI Data Mapping (แยกฝั่งเรา / ฝั่งศัตรู)
+  // =================================================
+  const uiAvatarSlots = isEnemy
+    ? gameState.enemyAvatarSlots
+    : gameState.avatarSlots;
+
+  const uiModSlots = isEnemy
+    ? gameState.enemyModSlots
+    : gameState.modSlots;
+
+  const uiEnd1 = isEnemy
+    ? gameState.enemyEnd1
+    : gameState.end1Cards;
+
+  const uiEnd2 = isEnemy
+    ? gameState.enemyEnd2
+    : gameState.end2Cards;
+
+  const uiRotation = isEnemy
+    ? gameState.enemyRotation
+    : gameState.avatarRotation;
+
+  const uiDeck = isEnemy
+    ? gameState.enemyDeck
+    : gameState.deckCards;
+
+  const uiMagicSlots = isEnemy
+    ? gameState.enemyMagicSlots
+    : gameState.magicSlots;
+
+  // =================================================
+  // ⚔️ Battle Center Card (slot "battle")
+  // =================================================
+  const battleCenterCard =
+    uiAvatarSlots && uiAvatarSlots["battle"]
+      ? uiAvatarSlots["battle"]
+      : null;
+
+  // =================================================
+  // 🃏 Start Zone
+  // =================================================
+  const uiStartCards = isEnemy
+    ? gameState.enemyStartCards
+    : gameState.startCards;
+
+  const uiStartImages = isEnemy
+    ? gameState.enemyStartImages
+    : gameState.startImages;
+
+  const uiStartStage = isEnemy
+    ? gameState.enemyStartStage
+    : gameState.startStage;
+
+  const setStartCards = isEnemy ? () => {} : gameState.updateStartCards;
+  const setStartImages = isEnemy ? () => {} : gameState.updateStartImages;
+  const setStartStage = isEnemy ? () => {} : gameState.updateStartStage;
+
+  const handleDrawCard = (card) => {
     gameState.updateHand((prev) => [...prev, card]);
+  };
 
+  // =================================================
+  // 🧩 RENDER
+  // =================================================
   return (
     <div
       className="fillborad"
       style={{
-        // 🔒 Visual Lock: ถ้าไม่ใช่เทิร์นเรา และไม่ใช่กระดานศัตรู ให้จางลงและกดไม่ได้
-        opacity: (!isMyTurn && !isEnemy) ? 0.85 : 1,
-        // pointerEvents: (!isMyTurn && !isEnemy) ? 'none' : 'auto', // ปิดบรรทัดนี้ถ้าอยากให้กดดูการ์ดได้ แต่กด Action ไม่ได้ (เพราะเรามี Guard ใน Hook แล้ว)
-        transition: 'all 0.3s ease'
+        opacity: !isMyTurn && !isEnemy ? 0.85 : 1,
+        transition: "all 0.3s ease",
       }}
     >
-      {/* -------------------------------------------------- */}
-      {/* 🔴 ส่วนควบคุมเทิร์น (แสดงเฉพาะฝั่งเรา) */}
-      {/* -------------------------------------------------- */}
+      {/* ================= TURN BAR ================= */}
       {!isEnemy && (
-        <div style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          gap: '20px',
-          marginBottom: '10px',
-          padding: '10px',
-          background: 'rgba(0,0,0,0.5)',
-          borderRadius: '10px'
-        }}>
-          <div style={{
-            color: isMyTurn ? '#2ecc71' : '#e74c3c',
-            fontWeight: 'bold',
-            fontSize: '1.2rem',
-            textShadow: '1px 1px 2px black'
-          }}>
-            {isMyTurn ? "🟢 ตาของคุณ (Your Turn)" : "⏳ รอฝ่ายตรงข้าม (Opponent's Turn)"}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            gap: "20px",
+            marginBottom: "10px",
+            padding: "10px",
+            background: "rgba(0,0,0,0.5)",
+            borderRadius: "10px",
+          }}
+        >
+          <div
+            style={{
+              color: isMyTurn ? "#2ecc71" : "#e74c3c",
+              fontWeight: "bold",
+              fontSize: "1.2rem",
+              textShadow: "1px 1px 2px black",
+            }}
+          >
+            {isMyTurn
+              ? "🟢 ตาของคุณ (Your Turn)"
+              : "⏳ รอฝ่ายตรงข้าม (Opponent's Turn)"}
           </div>
 
           {isMyTurn && (
             <button
               onClick={endTurn}
-              style={{
-                backgroundColor: '#e67e22',
-                color: 'white',
-                border: '2px solid #d35400',
-                borderRadius: '5px',
-                padding: '8px 20px',
-                cursor: 'pointer',
-                fontSize: '1rem',
-                fontWeight: 'bold',
-                boxShadow: '0 4px 6px rgba(0,0,0,0.3)'
-              }}
               className="hover-effect"
+              style={{
+                backgroundColor: "#e67e22",
+                color: "white",
+                border: "2px solid #d35400",
+                borderRadius: "5px",
+                padding: "8px 20px",
+                cursor: "pointer",
+                fontSize: "1rem",
+                fontWeight: "bold",
+              }}
             >
               ⏭️ จบเทิร์น
             </button>
@@ -119,37 +205,31 @@ function Bas({
         </div>
       )}
 
-      {/* ✅ ใส่ Snoop Overlay */}
+      {/* ================= OVERLAYS ================= */}
       {!isEnemy && (
-        <SnoopOverlay
-          isOpen={gameState.snoopState.isOpen}
-          cards={gameState.snoopState.cards}
-          revealedIndexes={gameState.snoopState.revealedIndexes}
-          ownerRole={gameState.snoopState.owner}
-          myRole={myRole}
-          onFlip={gameState.flipSnoopCard}
-          onSelect={gameState.endSnoopSession}
-        />
-      )}
+        <>
+          <SnoopOverlay
+            isOpen={gameState.snoopState.isOpen}
+            cards={gameState.snoopState.cards}
+            revealedIndexes={gameState.snoopState.revealedIndexes}
+            ownerRole={gameState.snoopState.owner}
+            myRole={myRole}
+            onFlip={gameState.flipSnoopCard}
+            onSelect={gameState.endSnoopSession}
+          />
 
-      {/* Battle Animation */}
-      {!isEnemy && (
-        <BattleClash
-          isOpen={gameState.battleAnim.isOpen}
-          attackerImg={gameState.battleAnim.attackerImg}
-          defenderImg={gameState.battleAnim.defenderImg}
-          onAnimationComplete={gameState.closeBattleAnim}
-        />
+          <BattleClash
+            isOpen={gameState.battleAnim.isOpen}
+            attackerImg={gameState.battleAnim.attackerImg}
+            defenderImg={gameState.battleAnim.defenderImg}
+            onAnimationComplete={gameState.closeBattleAnim}
+          />
+        </>
       )}
 
       <ShuffleEffect isShuffling={gameState.isShuffling} />
 
-      <div style={{ textAlign: "center", marginBottom: 4 }}>
-        <span style={{ fontWeight: "bold" }}>
-          กระดานของฝั่ง: {playerId} {isEnemy ? "(คู่แข่ง)" : "(คุณ)"}
-        </span>
-      </div>
-
+      {/* ================= HAND BUTTON ================= */}
       <HandButton
         handCards={isEnemy ? [] : gameState.handCards}
         setHandCards={gameState.updateHand}
@@ -164,15 +244,16 @@ function Bas({
         end2Cards={uiEnd2}
         setEnd2Cards={gameState.updateEnd2}
         isEnemy={isEnemy}
-
-        // ✅ ส่ง initiateSummon ไปให้ HandButton ใช้ตอน Drop การ์ด
+        enemyHandCount={isEnemy ? 0 : enemyHandCount}
         initiateSummon={gameState.initiateSummon}
       />
 
+      {/* ================= BATTLE CENTER ================= */}
       <div className="main-bas">
-        <Battle />
+        <Battle battleCenterCard={battleCenterCard} />
       </div>
 
+      {/* ================= MAIN ZONES ================= */}
       <div style={{ display: "flex" }}>
         <div className="start">
           <Start
@@ -195,7 +276,7 @@ function Bas({
             end2Cards={uiEnd2}
             deckCards={uiDeck}
             avatarRotation={uiRotation}
-            setMagicSlots={isEnemy ? () => { } : gameState.updateMagic}
+            setMagicSlots={isEnemy ? () => {} : gameState.updateMagic}
             setAvatarSlots={gameState.updateAvatar}
             setModSlots={gameState.updateMods}
             setHandCards={gameState.updateHand}
@@ -205,19 +286,13 @@ function Bas({
             setAvatarRotation={gameState.updateRotation}
             isEnemy={isEnemy}
             onAttack={startAttack}
-
-
-            // ✅ ส่ง Props ของ Summon System เข้าไปที่ Center
             summonState={gameState.summonState}
-            counterSummon={gameState.counterSummon}
-            handCards={gameState.handCards} // ต้องใช้เพื่อเลือกการ์ดมา Counter
-
+            handCards={gameState.handCards}
             startClash={gameState.startClash}
             submitEnemyCard={gameState.submitEnemyCard}
             submitSupportCard={gameState.submitSupportCard}
             submitEnemyCard2={gameState.submitEnemyCard2}
-
-            myRole={myRole} //
+            myRole={myRole}
           />
         </div>
 
