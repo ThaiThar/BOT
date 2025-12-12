@@ -5,7 +5,7 @@ import myPic from "../../../assets/backcard.jpg";
 import { viewDeck } from "./functions/viewDeck";
 import { drawCard } from "./functions/drawCard";
 import { showPreviewSwal } from "./functions/showPreviewSwal";
-import { snoopCards } from "./functions/snoopCards"; // ✅ Import แล้ว
+import { snoopCards } from "./functions/snoopCards";
 import { handleChooseCards } from "./functions/handleChooseCards";
 
 import { useState } from "react";
@@ -23,11 +23,9 @@ function End1({
   resetGame,
   onShuffleDeck,
   isEnemy,
-  broadcast, // ✅ รับ broadcast เข้ามาเพื่อส่งให้ snoopCards
+  broadcast,
   startSnoopSession,
 }) {
-  // ❌ ลบโค้ด JSX ที่เคยลอยอยู่ตรงนี้ออกไปแล้วครับ (ย้ายไปใส่ใน return ด้านล่างแทน)
-
   const [isLoaded, setIsLoaded] = useState(false);
 
   const resetLocal = () => {
@@ -49,9 +47,23 @@ function End1({
     });
   };
 
+  // ✅✅✅ อัปเดตฟังก์ชันนี้: ถ้าเป็นศัตรูให้ดูรูปได้อย่างเดียว ✅✅✅
   const returnToDeck = (img, index, zone) => {
-    if (isEnemy) return;
+    // 1. ถ้าเป็นฝ่ายศัตรู ให้แสดง pop-up ดูรูปภาพขยายใหญ่ (View Only)
+    if (isEnemy) {
+      Swal.fire({
+        imageUrl: img,
+        imageHeight: "80vh", // กำหนดความสูงให้เหมาะสม (80% ของจอ)
+        imageAlt: "Card Preview",
+        background: "transparent", // พื้นหลังใสเพื่อให้ดูเด่น
+        showConfirmButton: false, // ไม่ต้องมีปุ่ม OK
+        showCloseButton: true, // แสดงปุ่มกากบาทปิด
+        backdrop: `rgba(0,0,0,0.8)`, // ฉากหลังมืดทึบ
+      });
+      return; // จบการทำงานฟังก์ชัน ไม่ทำส่วนข้างล่างต่อ
+    }
 
+    // 2. ถ้าเป็นฝ่ายเรา ให้แสดงเมนูจัดการการ์ดตามปกติ
     Swal.fire({
       title: "เลือกการกระทำ",
       html: `
@@ -110,7 +122,7 @@ function End1({
 
   return (
     <div>
-      {/* ส่วนเลือกไฟล์ / Reset */}
+      {/* ส่วนเลือกไฟล์ / Reset (แสดงเฉพาะฝั่งเรา) */}
       {!isEnemy && (
         <div style={{ marginBottom: "5px", textAlign: "center" }}>
           {!isLoaded ? (
@@ -180,10 +192,12 @@ function End1({
                   สับการ์ด
                 </div>
 
-                {/* ✅✅✅ ปุ่มสอดแนมที่ถูกต้องอยู่ตรงนี้ ✅✅✅ */}
+                {/* ✅ ใส่ broadcast กลับเข้าไปเพื่อให้สอดแนมทำงานได้ */}
                 <div
                   className="buttomdeckcard snoop"
-                  onClick={() => snoopCards(deckCards, startSnoopSession)}
+                  onClick={() =>
+                    snoopCards(deckCards, startSnoopSession, broadcast)
+                  }
                 >
                   สอดแนม
                 </div>
@@ -201,7 +215,8 @@ function End1({
                 src={img}
                 className="endcard-img"
                 onClick={() => returnToDeck(img, i, "end")}
-                style={{ cursor: isEnemy ? "default" : "pointer" }}
+                // ✅ แก้ไข: ให้เป็น pointer เสมอ เพื่อให้รู้ว่ากดดูได้
+                style={{ cursor: "pointer" }}
                 alt={`End1-${i}`}
               />
             ))}
@@ -217,7 +232,8 @@ function End1({
                 src={img}
                 className="endcard-img"
                 onClick={() => returnToDeck(img, i, "end2")}
-                style={{ cursor: isEnemy ? "default" : "pointer" }}
+                // ✅ แก้ไข: ให้เป็น pointer เสมอ
+                style={{ cursor: "pointer" }}
                 alt={`End2-${i}`}
               />
             ))}
