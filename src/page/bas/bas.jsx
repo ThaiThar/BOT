@@ -12,7 +12,6 @@ import ShuffleEffect from "./ui/ShuffleEffect.jsx";
 import BattleClash from "./ui/BattleClash.jsx";
 import SnoopOverlay from "./ui/SnoopOverlay.jsx";
 
-
 // Hooks
 import { useBattleSystem } from "./hooks/useBattleSystem";
 
@@ -143,6 +142,8 @@ function Bas({
   const setStartStage = isEnemy ? () => {} : gameState.updateStartStage;
 
   const handleDrawCard = (card) => {
+    // ⚠️ ถ้าต้องการให้จั่วได้เฉพาะตาตัวเอง ให้ใส่เงื่อนไข if (!isMyTurn) return; ตรงนี้
+    // แต่ถ้าต้องการให้ทำได้ตลอดเวลา ก็ปล่อยไว้แบบนี้ครับ
     gameState.updateHand((prev) => [...prev, card]);
   };
 
@@ -153,8 +154,12 @@ function Bas({
     <div
       className="fillborad"
       style={{
-        opacity: !isMyTurn && !isEnemy ? 0.85 : 1,
+        // ✅ แก้ไข: เอาเงื่อนไข Opacity ออก ให้แสดงผลชัดเจนตลอดเวลา
+        // opacity: !isMyTurn && !isEnemy ? 0.85 : 1, 
+        opacity: 1, 
         transition: "all 0.3s ease",
+        // ✅ เพิ่ม: เพื่อให้แน่ใจว่าคลิกได้แน่นอน (เผื่อ CSS มี pointer-events: none)
+        pointerEvents: "auto" 
       }}
     >
       {/* ================= TURN BAR ================= */}
@@ -184,6 +189,7 @@ function Bas({
               : "⏳ รอฝ่ายตรงข้าม (Opponent's Turn)"}
           </div>
 
+          {/* ปุ่มจบเทิร์นยังคงแสดงเฉพาะตอนเป็นตาเราเท่านั้น (ตาม Logic เกมที่ถูกต้อง) */}
           {isMyTurn && (
             <button
               onClick={endTurn}
@@ -230,6 +236,7 @@ function Bas({
       <ShuffleEffect isShuffling={gameState.isShuffling} />
 
       {/* ================= HAND BUTTON ================= */}
+      {/* HandButton ไม่มีเงื่อนไขปิดกั้น จึงสามารถกดดูการ์ดได้ตลอดเวลา */}
       <HandButton
         handCards={isEnemy ? [] : gameState.handCards}
         setHandCards={gameState.updateHand}
@@ -285,7 +292,11 @@ function Bas({
             setDeckCards={gameState.updateDeck}
             setAvatarRotation={gameState.updateRotation}
             isEnemy={isEnemy}
+            
+            // ⚠️ การโจมตี (onAttack) อาจจะต้องไปเช็คใน useBattleSystem ว่าห้ามตีถ้าไม่ใช่เทิร์น
+            // แต่ปุ่ม UI จะแสดงผลให้เห็นและกดได้ (ถ้าไม่ได้ซ่อนปุ่มใน Center)
             onAttack={startAttack}
+            
             summonState={gameState.summonState}
             handCards={gameState.handCards}
             startClash={gameState.startClash}
