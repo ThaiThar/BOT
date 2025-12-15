@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react"; // ไม่ต้องใช้ useState, useEffect แล้วสำหรับหน้านี้
 import "./style.css";
 import "../bas/end1/functions/HinduGodMode.css";
 
@@ -24,8 +24,9 @@ function Bas({
   // =================================================
   // 🧠 Local State
   // =================================================
+  // ✅ ดึงค่ามาจาก gameState โดยตรง (ที่ทำไว้ใน useBasState)
+  const enemyHandCount = gameState.enemyHandCount || 0;
 
-const enemyHandCount = gameState.enemyHandCount || 0;
   // =================================================
   // 🔄 Turn Control
   // =================================================
@@ -50,100 +51,38 @@ const enemyHandCount = gameState.enemyHandCount || 0;
     setEnemyStartCards: gameState.setEnemyStartCards,
   });
 
-  // =================================================
-  // 📤 ส่งจำนวนการ์ดในมือของเราไปหาอีกฝั่ง
-  // =================================================
-  useEffect(() => {
-    if (isEnemy) return;
-    if (!gameState?.broadcast) return;
-    if (!Array.isArray(gameState.handCards)) return;
-
-    gameState.broadcast({
-      type: "UPDATE_HAND_COUNT",
-      count: gameState.handCards.length,
-    });
-  }, [gameState.handCards, isEnemy, gameState.broadcast]);
-
-  // =================================================
-  // 📥 รับจำนวนการ์ดในมือของฝ่ายตรงข้าม
-  // =================================================
-  useEffect(() => {
-    if (!gameState?.onBroadcast) return;
-
-    const unsubscribe = gameState.onBroadcast((msg) => {
-      if (!msg || typeof msg !== "object") return;
-
-      if (msg.type === "UPDATE_HAND_COUNT") {
-        setEnemyHandCount(Number(msg.count || 0));
-      }
-    });
-
-    return () => {
-      if (typeof unsubscribe === "function") unsubscribe();
-    };
-  }, [gameState]);
+  // ❌ ลบ useEffect 2 ก้อนเดิมออก (เพราะย้ายไปทำใน useBasState แล้ว) 
+  // - ก้อน send UPDATE_HAND_COUNT
+  // - ก้อน receive UPDATE_HAND_COUNT
 
   // =================================================
   // 🧩 UI Data Mapping (แยกฝั่งเรา / ฝั่งศัตรู)
   // =================================================
-  const uiAvatarSlots = isEnemy
-    ? gameState.enemyAvatarSlots
-    : gameState.avatarSlots;
-
-  const uiModSlots = isEnemy
-    ? gameState.enemyModSlots
-    : gameState.modSlots;
-
-  const uiEnd1 = isEnemy
-    ? gameState.enemyEnd1
-    : gameState.end1Cards;
-
-  const uiEnd2 = isEnemy
-    ? gameState.enemyEnd2
-    : gameState.end2Cards;
-
-  const uiRotation = isEnemy
-    ? gameState.enemyRotation
-    : gameState.avatarRotation;
-
-  const uiDeck = isEnemy
-    ? gameState.enemyDeck
-    : gameState.deckCards;
-
-  const uiMagicSlots = isEnemy
-    ? gameState.enemyMagicSlots
-    : gameState.magicSlots;
+  const uiAvatarSlots = isEnemy ? gameState.enemyAvatarSlots : gameState.avatarSlots;
+  const uiModSlots = isEnemy ? gameState.enemyModSlots : gameState.modSlots;
+  const uiEnd1 = isEnemy ? gameState.enemyEnd1 : gameState.end1Cards;
+  const uiEnd2 = isEnemy ? gameState.enemyEnd2 : gameState.end2Cards;
+  const uiRotation = isEnemy ? gameState.enemyRotation : gameState.avatarRotation;
+  const uiDeck = isEnemy ? gameState.enemyDeck : gameState.deckCards;
+  const uiMagicSlots = isEnemy ? gameState.enemyMagicSlots : gameState.magicSlots;
 
   // =================================================
   // ⚔️ Battle Center Card (slot "battle")
   // =================================================
-  const battleCenterCard =
-    uiAvatarSlots && uiAvatarSlots["battle"]
-      ? uiAvatarSlots["battle"]
-      : null;
+  const battleCenterCard = uiAvatarSlots && uiAvatarSlots["battle"] ? uiAvatarSlots["battle"] : null;
 
   // =================================================
   // 🃏 Start Zone
   // =================================================
-  const uiStartCards = isEnemy
-    ? gameState.enemyStartCards
-    : gameState.startCards;
-
-  const uiStartImages = isEnemy
-    ? gameState.enemyStartImages
-    : gameState.startImages;
-
-  const uiStartStage = isEnemy
-    ? gameState.enemyStartStage
-    : gameState.startStage;
+  const uiStartCards = isEnemy ? gameState.enemyStartCards : gameState.startCards;
+  const uiStartImages = isEnemy ? gameState.enemyStartImages : gameState.startImages;
+  const uiStartStage = isEnemy ? gameState.enemyStartStage : gameState.startStage;
 
   const setStartCards = isEnemy ? () => { } : gameState.updateStartCards;
   const setStartImages = isEnemy ? () => { } : gameState.updateStartImages;
   const setStartStage = isEnemy ? () => { } : gameState.updateStartStage;
 
   const handleDrawCard = (card) => {
-    // ⚠️ ถ้าต้องการให้จั่วได้เฉพาะตาตัวเอง ให้ใส่เงื่อนไข if (!isMyTurn) return; ตรงนี้
-    // แต่ถ้าต้องการให้ทำได้ตลอดเวลา ก็ปล่อยไว้แบบนี้ครับ
     gameState.updateHand((prev) => [...prev, card]);
   };
 
@@ -154,11 +93,8 @@ const enemyHandCount = gameState.enemyHandCount || 0;
     <div
       className="fillborad"
       style={{
-        // ✅ แก้ไข: เอาเงื่อนไข Opacity ออก ให้แสดงผลชัดเจนตลอดเวลา
-        // opacity: !isMyTurn && !isEnemy ? 0.85 : 1, 
         opacity: 1,
         transition: "all 0.3s ease",
-        // ✅ เพิ่ม: เพื่อให้แน่ใจว่าคลิกได้แน่นอน (เผื่อ CSS มี pointer-events: none)
         pointerEvents: "auto"
       }}
     >
@@ -189,7 +125,6 @@ const enemyHandCount = gameState.enemyHandCount || 0;
               : "⏳ รอฝ่ายตรงข้าม (Opponent's Turn)"}
           </div>
 
-          {/* ปุ่มจบเทิร์นยังคงแสดงเฉพาะตอนเป็นตาเราเท่านั้น (ตาม Logic เกมที่ถูกต้อง) */}
           {isMyTurn && (
             <button
               onClick={endTurn}
@@ -236,7 +171,6 @@ const enemyHandCount = gameState.enemyHandCount || 0;
       <ShuffleEffect isShuffling={gameState.isShuffling} />
 
       {/* ================= HAND BUTTON ================= */}
-      {/* HandButton ไม่มีเงื่อนไขปิดกั้น จึงสามารถกดดูการ์ดได้ตลอดเวลา */}
       <HandButton
         handCards={isEnemy ? [] : gameState.handCards}
         setHandCards={gameState.updateHand}
@@ -251,10 +185,7 @@ const enemyHandCount = gameState.enemyHandCount || 0;
         end2Cards={uiEnd2}
         setEnd2Cards={gameState.updateEnd2}
         isEnemy={isEnemy}
-
-        // ✅✅✅ แก้ไขตรงนี้ครับ ✅✅✅
-        enemyHandCount={enemyHandCount}
-
+        enemyHandCount={enemyHandCount} // ✅ ส่งค่าที่ถูกต้องไป
         initiateSummon={gameState.initiateSummon}
       />
 
@@ -296,9 +227,7 @@ const enemyHandCount = gameState.enemyHandCount || 0;
             setAvatarRotation={gameState.updateRotation}
             isEnemy={isEnemy}
 
-            // ⚠️ การโจมตี (onAttack) อาจจะต้องไปเช็คใน useBattleSystem ว่าห้ามตีถ้าไม่ใช่เทิร์น
-            // แต่ปุ่ม UI จะแสดงผลให้เห็นและกดได้ (ถ้าไม่ได้ซ่อนปุ่มใน Center)
-            onAttack={startAttack}
+            onAttack={startAttack} // ✅ ส่งฟังก์ชันโจมตี
 
             summonState={gameState.summonState}
             handCards={gameState.handCards}
