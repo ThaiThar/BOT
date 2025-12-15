@@ -11,9 +11,10 @@ export function useSummonSystem({
   setEnemyEnd1,
   magicSlots,
   setMagicSlots,
-  
-  // ✅ 1. เพิ่ม Props ที่ต้องใช้เช็คการ์ดศัตรู
-  enemyAvatarSlots, 
+
+  // ✅ 1. Props เพิ่มเติมที่ต้องใช้
+  avatarSlots, // กระดานเรา (ใช้เช็คการ์ดเก่าก่อนทับ)
+  enemyAvatarSlots, // กระดานศัตรู (ใช้เช็คเพื่อดีดการ์ด)
   setEnemyAvatarSlots,
   enemyEnd1
 }) {
@@ -31,7 +32,9 @@ export function useSummonSystem({
 
   const timerRef = useRef(null);
 
-  // ... (ฟังก์ชัน initiateSummon, startClash, submit ต่างๆ เหมือนเดิม ไม่ต้องแก้) ...
+  // -----------------------------------------------------------
+  // 🚀 Initiate & Battle Phases
+  // -----------------------------------------------------------
   const initiateSummon = (card, target) => {
     setHandCards((prev) => prev.filter((c) => c !== card));
     const newState = {
@@ -82,7 +85,9 @@ export function useSummonSystem({
     broadcast("summon_finish", finalState);
   };
 
-  // ... (useEffect Timer เหมือนเดิม) ...
+  // -----------------------------------------------------------
+  // ⏳ Timer Logic
+  // -----------------------------------------------------------
   useEffect(() => {
     if (!summonState.isActive) return;
     if (summonState.owner === myRole) {
@@ -102,9 +107,8 @@ export function useSummonSystem({
     broadcast("summon_finish", summonState);
   };
 
-
   // -----------------------------------------------------------
-  // ⚖️ Resolve Battle (แก้ตรงนี้!)
+  // ⚖️ Resolve Battle (Logic หลัก)
   // -----------------------------------------------------------
   const resolveBattle = (finalState) => {
     const { owner, cardMain, cardEnemy, cardSupport, cardEnemy2, slotIndex } = finalState;
@@ -114,6 +118,7 @@ export function useSummonSystem({
     const isCase3 = cardEnemy && cardSupport && !cardEnemy2;
     const isWin = isCase1 || isCase3;
 
+    // การ์ดที่ใช้แล้วต้องลงสุสาน
     const cardsOfOwner = [];
     if (!isWin && cardMain) cardsOfOwner.push(cardMain);
     if (cardSupport) cardsOfOwner.push(cardSupport);
@@ -129,64 +134,85 @@ export function useSummonSystem({
 
       if (isWin) {
         if (typeof slotIndex === "string" && slotIndex.startsWith("magic-")) {
-            // Magic Logic (เหมือนเดิม)
-            const magicIdx = parseInt(slotIndex.split("-")[1], 10);
-            setMagicSlots(prev => {
-                const next = [...prev];
-                next[magicIdx] = cardMain;
-                broadcast("update_magic", next);
-                return next;
-            });
+          // --- Magic Logic ---
+          const magicIdx = parseInt(slotIndex.split("-")[1], 10);
+          setMagicSlots(prev => {
+            const next = [...prev];
+            next[magicIdx] = cardMain;
+            broadcast("update_magic", next);
+            return next;
+          });
         } else {
-            // Avatar / Battle Logic
-            setAvatarSlots((prev) => {
-              const next = [...prev];
-              next[slotIndex] = cardMain; 
+          // --- Avatar / Battle Logic ---
 
-              // ส่งข้อมูลบอกศัตรูว่าเราลงการ์ดแล้ว
-              const payload = { 0: next[0], 1: next[1], 2: next[2], 3: next[3], battle: next["battle"] };
-              broadcast("update_avatar", payload); 
-
-              return next;
-            });
-
-            // 🔥🔥🔥 2. เพิ่ม Logic ดีดการ์ด Battle ของศัตรู 🔥🔥🔥
-            if (slotIndex === "battle") {
-                // เช็คว่าศัตรูมีการ์ดใน Battle ไหม
-                const enemyBattleCard = enemyAvatarSlots?.battle;
-                
-                if (enemyBattleCard) {
-                    // 2.1 เตรียมข้อมูลใหม่ (เอาการ์ดศัตรูลง End)
-                    const newEnemyEnd = [...enemyEnd1, enemyBattleCard];
-                    
-                    // 2.2 อัปเดตหน้าจอเรา (ลบการ์ด battle ศัตรูออก)
-                    const newEnemyAvArray = [...enemyAvatarSlots];
-                    newEnemyAvArray.battle = null; 
-                    setEnemyAvatarSlots(newEnemyAvArray);
-                    setEnemyEnd1(newEnemyEnd);
-
-                    // 2.3 สร้าง Payload สำหรับส่ง Socket (ต้องแปลง Array เป็น Object เพื่อรักษาค่า battle: null)
-                    const enemyAvPayload = {
-                        0: newEnemyAvArray[0],
-                        1: newEnemyAvArray[1],
-                        2: newEnemyAvArray[2],
-                        3: newEnemyAvArray[3],
-                        battle: null // สั่งลบ
-                    };
-
-                    // 2.4 ส่งคำสั่งพิเศษ "kick_enemy_battle" ไปหาศัตรู
-                    broadcast("update_enemy_after_summon", {
-                        enemyEnd1: newEnemyEnd,
-                        enemyAvatar: enemyAvPayload
-                    });
-
-                    Swal.fire({ icon: "success", title: "Battle Override!", text: "การ์ด Battle ของศัตรูถูกทำลาย!", timer: 1500 });
-                } else {
-                    Swal.fire({ icon: "success", title: "Summon Success!", timer: 1500, showConfirmButton: false, position: "top" });
-                }
-            } else {
-                Swal.fire({ icon: "success", title: "Summon Success!", timer: 1500, showConfirmButton: false, position: "top" });
+          // ✅ 1. จัดการ "ทับการ์ดเก่า" (Overwrite Logic)
+          // ทำข้างนอก setter เพื่อกันเบิ้ล (React Strict Mode Safe)
+          if (slotIndex === "battle") {
+            const oldCard = avatarSlots?.battle;
+            if (oldCard) {
+              setEnd1Cards((prevEnd) => {
+                const newEnd = [...prevEnd, oldCard];
+                broadcast("update_end1", newEnd);
+                return newEnd;
+              });
             }
+          }
+
+          // ✅ 2. ลงการ์ดใบใหม่
+          setAvatarSlots((prev) => {
+            const next = [...prev];
+            next.battle = prev.battle; // กู้ค่าเดิมกันหาย
+
+            if (slotIndex === "battle") {
+              next.battle = cardMain; // ทับใบใหม่ลงไป
+            } else {
+              next[slotIndex] = cardMain;
+            }
+
+            // ส่งข้อมูลบอกศัตรู (แปลง Array -> Object เพื่อรักษา Battle key)
+            const payload = {
+              0: next[0], 1: next[1], 2: next[2], 3: next[3],
+              battle: next.battle
+            };
+            broadcast("update_avatar", payload);
+
+            return next;
+          });
+
+          // ✅ 3. Logic ดีดการ์ดศัตรู (Kick Enemy Logic)
+          if (slotIndex === "battle") {
+            const enemyBattleCard = enemyAvatarSlots?.battle;
+            
+            if (enemyBattleCard) {
+              // 3.1 ย้ายการ์ดศัตรูลง End
+              const newEnemyEnd = [...enemyEnd1, enemyBattleCard];
+              
+              // 3.2 ลบออกจากกระดาน
+              const newEnemyAvArray = [...enemyAvatarSlots];
+              newEnemyAvArray.battle = null;
+
+              // 3.3 อัปเดต State เรา
+              setEnemyAvatarSlots(newEnemyAvArray);
+              setEnemyEnd1(newEnemyEnd);
+
+              // 3.4 สร้าง Payload สั่งลบฝั่งศัตรู
+              const enemyAvPayload = {
+                0: newEnemyAvArray[0], 1: newEnemyAvArray[1], 2: newEnemyAvArray[2], 3: newEnemyAvArray[3],
+                battle: null // สั่งลบชัดเจน
+              };
+
+              broadcast("update_enemy_after_summon", {
+                enemyEnd1: newEnemyEnd,
+                enemyAvatar: enemyAvPayload
+              });
+
+              Swal.fire({ icon: "success", title: "Battle Override!", text: "การ์ด Battle ของศัตรูถูกทำลาย!", timer: 1500 });
+            } else {
+              Swal.fire({ icon: "success", title: "Summon Success!", timer: 1500, showConfirmButton: false, position: "top" });
+            }
+          } else {
+            Swal.fire({ icon: "success", title: "Summon Success!", timer: 1500, showConfirmButton: false, position: "top" });
+          }
         }
       } else {
         Swal.fire({ title: "SUMMON FAILED!", icon: "error", timer: 1500, showConfirmButton: false, background: "#000", color: "#fff" });

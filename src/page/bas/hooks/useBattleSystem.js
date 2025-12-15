@@ -10,16 +10,16 @@ export function useBattleSystem({
   setEnemyModSlots,
   enemyEnd1,
   setEnemyEnd1,
-  
+
   // props สำหรับการตีบ้าน
-  enemyStartCards,       
-  setEnemyStartCards,    
-  
+  enemyStartCards,
+  setEnemyStartCards,
+
   broadcast,
   updateRotation,
   triggerBattleAnim,
 }) {
-  
+
 
   // ----------------------------------------------------
   // ⚔️ 1. Logic ตีการ์ด (Avatar แตก + Mod ทั้งหมดลงสุสาน)
@@ -33,7 +33,7 @@ export function useBattleSystem({
     const mods = enemyModSlots[targetIndex] || [];
     // เอา Avatar + Mods ทั้งหมดลงสุสาน
     const newEnemyEnd1 = [...enemyEnd1, card, ...mods];
-    
+
     // เคลียร์ช่องนั้น
     const newEnemyAv = [...enemyAvatarSlots];
     const newEnemyMods = [...enemyModSlots];
@@ -117,8 +117,8 @@ export function useBattleSystem({
     // 🟢 กรณี A: ยังมีการ์ดเหลือ
     if (targetCardIndex !== -1) {
       const newStartCards = [...enemyStartCards];
-      const hitCard = newStartCards[targetCardIndex]; 
-      
+      const hitCard = newStartCards[targetCardIndex];
+
       newStartCards[targetCardIndex] = { ...hitCard, flipped: true };
 
       setEnemyStartCards(newStartCards);
@@ -136,14 +136,14 @@ export function useBattleSystem({
       });
 
       broadcast("receive_base_damage", {
-         newCards: newStartCards,   
-         hitCardImage: hitCard.image 
+        newCards: newStartCards,
+        hitCardImage: hitCard.image
       });
 
-    } 
+    }
     // 🔴 กรณี B: การ์ดหมดแล้ว -> Game Over
     else {
-      broadcast("game_over", {}); 
+      broadcast("game_over", {});
       Swal.fire({
         title: "👑 VICTORY! 👑",
         text: "คุณโจมตีผู้เล่นโดยตรงและได้รับชัยชนะ!",
@@ -164,7 +164,7 @@ export function useBattleSystem({
     if (isEnemy) return;
 
     const myAttackerCard = avatarSlots[attackerIndex];
-    if (!myAttackerCard) return; 
+    if (!myAttackerCard) return;
 
     // หาเป้าหมายที่เป็นการ์ดในสนาม (Minions)
     const targets = enemyAvatarSlots
@@ -174,17 +174,17 @@ export function useBattleSystem({
     // 🔴 CASE 1: ไม่มีการ์ดในสนาม -> ให้ตีบ้าน
     if (targets.length === 0) {
       const remainingCards = enemyStartCards.filter(c => !c.flipped).length;
-      
+
       let titleMsg = "โจมตีฐานทัพ?";
       let textMsg = `เหลือการ์ดป้องกัน ${remainingCards} ใบ`;
       let confirmMsg = "⚔️ โจมตีการ์ด!";
       let targetImageForAnim = "https://agenda.bkkthon.ac.th/card-game-api/attack_start.png";
 
       if (remainingCards === 0) {
-         titleMsg = "⚡ โจมตีผู้เล่นโดยตรง!";
-         textMsg = "ศัตรูไร้การป้องกัน ต้องการปิดฉากหรือไม่?";
-         confirmMsg = "💀 ปิดฉาก!";
-         targetImageForAnim = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+        titleMsg = "⚡ โจมตีผู้เล่นโดยตรง!";
+        textMsg = "ศัตรูไร้การป้องกัน ต้องการปิดฉากหรือไม่?";
+        confirmMsg = "💀 ปิดฉาก!";
+        targetImageForAnim = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
       }
 
       Swal.fire({
@@ -200,10 +200,10 @@ export function useBattleSystem({
         color: "#fff"
       }).then((result) => {
         if (result.isConfirmed) {
-            triggerBattleAnim(myAttackerCard, targetImageForAnim);
-            setTimeout(() => {
-                executeBaseAttackLogic(attackerIndex);
-            }, 2500);
+          triggerBattleAnim(myAttackerCard, targetImageForAnim);
+          setTimeout(() => {
+            executeBaseAttackLogic(attackerIndex);
+          }, 2500);
         }
       });
       return;
@@ -239,78 +239,90 @@ export function useBattleSystem({
             // ✅ Logic ใหม่: เช็คว่า Avatar มี Mod หรือไม่?
             // ----------------------------------------------------
             if (targetMods.length > 0) {
-                // ถาม User: ตีตัว หรือ ตี Mod
-                Swal.fire({
-                    title: "พบการ์ดเสริม!",
-                    text: "ศัตรูตัวนี้มีการ์ดเสริมติดตั้งอยู่ ต้องการโจมตีอะไร?",
-                    icon: "question",
-                    showDenyButton: true,
-                    showCancelButton: true,
-                    confirmButtonText: "⚔️ โจมตี Avatar",
-                    denyButtonText: "🔧 ทำลาย Mod",
-                    cancelButtonText: "ยกเลิก",
-                    background: "#222",
-                    color: "#fff",
-                    confirmButtonColor: "#d33",
-                    denyButtonColor: "#f39c12"
-                }).then((res) => {
-                    if (res.isConfirmed) {
-                        // ⚔️ เลือกตี Avatar (เหมือนเดิม)
-                        triggerBattleAnim(myAttackerCard, targetCardImg);
-                        setTimeout(() => {
-                            const result = executeDamageLogic(attackerIndex, targetAvatarIndex);
-                            if (result) {
-                                broadcast("update_enemy_after_attack", { ...result, attackerIndex });
-                            }
-                        }, 2500);
+              // ถาม User: ตีตัว หรือ ตี Mod
+              Swal.fire({
+                title: "พบการ์ดเสริม!",
+                text: "ศัตรูตัวนี้มีการ์ดเสริมติดตั้งอยู่ ต้องการโจมตีอะไร?",
+                icon: "question",
+                showDenyButton: true,
+                showCancelButton: true,
+                confirmButtonText: "⚔️ โจมตี Avatar",
+                denyButtonText: "🔧 ทำลาย Mod",
+                cancelButtonText: "ยกเลิก",
+                background: "#222",
+                color: "#fff",
+                confirmButtonColor: "#d33",
+                denyButtonColor: "#f39c12"
+              }).then((res) => {
+                if (res.isConfirmed) {
+                  // ⚔️ เลือกตี Avatar (เหมือนเดิม)
+                  triggerBattleAnim(myAttackerCard, targetCardImg);
+                  setTimeout(() => {
+                    const result = executeDamageLogic(attackerIndex, targetAvatarIndex);
+                    if (result) {
+                      broadcast("update_enemy_after_attack", { ...result, attackerIndex });
+                    }
+                  }, 2500);
 
-                    } else if (res.isDenied) {
-                        // 🔧 เลือกตี Mod -> ให้เลือก Mod ใบไหน
-                        const modHtml = targetMods.map((mod, i) => `
+                } else if (res.isDenied) {
+
+                  const modHtml = targetMods.map((mod, i) => `
                              <button class="mod-atk-btn" data-mod-idx="${i}" style="margin:5px; border:none; background:none; cursor:pointer;">
                                 <img src="${mod}" style="width:100px; border-radius:6px; border:2px solid #f39c12;" />
-                                <div style="color:#fff; font-size:12px;">Mod ${i+1}</div>
+                                <div style="color:#fff; font-size:12px;">Mod ${i + 1}</div>
                              </button>
                         `).join("");
 
-                        Swal.fire({
-                            title: "เลือก Mod ที่จะทำลาย",
-                            html: `<div style="display:flex; flex-wrap:wrap; justify-content:center;">${modHtml}</div>`,
-                            showConfirmButton: false,
-                            background: "#111",
-                            didOpen: () => {
-                                Swal.getHtmlContainer().querySelectorAll(".mod-atk-btn").forEach((modBtn) => {
-                                    modBtn.onclick = () => {
-                                        const modIndex = parseInt(modBtn.dataset.modIdx, 10);
-                                        const modImg = targetMods[modIndex];
-                                        Swal.close();
+                  Swal.fire({
+                    title: "เลือก Mod ที่จะทำลาย",
+                    html: `<div style="display:flex; flex-wrap:wrap; justify-content:center;">${modHtml}</div>`,
+                    showConfirmButton: false,
+                    background: "#111",
+                    didOpen: () => {
+                      Swal.getHtmlContainer().querySelectorAll(".mod-atk-btn").forEach((modBtn) => {
+                        modBtn.onclick = () => {
+                          const modIndex = parseInt(modBtn.dataset.modIdx, 10);
+                          const modImg = targetMods[modIndex];
+                          Swal.close();
 
-                                        // เริ่ม Animation ตีไปที่รูป Mod
-                                        triggerBattleAnim(myAttackerCard, modImg);
+                          // เริ่ม Animation ตีไปที่รูป Mod
+                          triggerBattleAnim(myAttackerCard, modImg);
 
-                                        setTimeout(() => {
-                                            // เรียก Logic ทำลาย Mod
-                                            const result = executeModDamageLogic(attackerIndex, targetAvatarIndex, modIndex);
-                                            if (result) {
-                                                broadcast("update_enemy_after_attack", { ...result, attackerIndex });
-                                            }
-                                        }, 2500);
-                                    };
-                                });
+                          setTimeout(() => {
+                            // เรียก Logic ทำลาย Mod
+                            const result = executeModDamageLogic(attackerIndex, targetAvatarIndex, modIndex);
+                            if (result) {
+                              broadcast("update_enemy_after_attack", { ...result, attackerIndex });
                             }
-                        });
+                          }, 2500);
+                        };
+                      });
                     }
-                });
+                  });
+                }
+              });
 
             } else {
-                // ❌ ไม่มี Mod -> ตี Avatar ตามปกติเลย
-                triggerBattleAnim(myAttackerCard, targetCardImg);
-                setTimeout(() => {
-                    const result = executeDamageLogic(attackerIndex, targetAvatarIndex);
-                    if (result) {
-                        broadcast("update_enemy_after_attack", { ...result, attackerIndex });
-                    }
-                }, 2500);
+              // ❌ ไม่มี Mod -> ตี Avatar ตามปกติเลย
+              triggerBattleAnim(myAttackerCard, targetCardImg);
+              setTimeout(() => {
+                const result = executeDamageLogic(attackerIndex, targetAvatarIndex);
+
+                if (result) {
+                  // ✅✅✅ แก้ไขตรงนี้: แปลง Avatar Array เป็น Object ก่อนส่ง ✅✅✅
+                  const rawAv = result.enemyAvatar;
+                  const avatarPayload = {
+                    0: rawAv[0], 1: rawAv[1], 2: rawAv[2], 3: rawAv[3],
+                    battle: rawAv.battle // รักษาค่า battle ไว้
+                  };
+
+                  broadcast("update_enemy_after_attack", {
+                    ...result,
+                    enemyAvatar: avatarPayload, // ส่งแบบ Object ไป
+                    attackerIndex
+                  });
+                }
+              }, 2500);
             }
           };
         });

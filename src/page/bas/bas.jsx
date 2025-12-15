@@ -191,7 +191,15 @@ function Bas({
 
       {/* ================= BATTLE CENTER ================= */}
       <div className="main-bas">
-        <Battle battleCenterCard={battleCenterCard} />
+        <Battle
+          battleCenterCard={battleCenterCard}
+          setAvatarSlots={gameState.setAvatarSlots} // ใช้ตัว Raw Setter (เพื่อ Custom Broadcast เอง)
+          avatarSlots={gameState.avatarSlots}       // ส่งข้อมูลกระดานปัจจุบันไป (เพื่อแพ็คข้อมูลส่ง)
+          setHandCards={gameState.updateHand}
+          setEnd1Cards={gameState.updateEnd1}
+          broadcast={gameState.broadcast}
+          isEnemy={isEnemy}
+        />
       </div>
 
       {/* ================= MAIN ZONES ================= */}

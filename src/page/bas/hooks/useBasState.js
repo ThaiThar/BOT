@@ -1,5 +1,5 @@
 // src/components/Bas/hooks/useBasState.js
-import { useState, useEffect } from "react"; // ✅ เพิ่ม useState เข้ามา
+import { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 
 // Import Modules
@@ -9,9 +9,9 @@ import { useBattleAnimModule } from "./modules/useBattleAnimModule";
 import { useStartGameModule } from "./modules/useStartGameModule";
 import { useBoardModule } from "./modules/useBoardModule";
 import { useSnoopModule } from "./modules/useSnoopModule";
-import { useSummonSystem } from "./modules/useSummonSystem"; // ✅ Import
+import { useSummonSystem } from "./modules/useSummonSystem";
 
-// ✅ Import Turn Module
+// Import Turn Module
 import { useTurnModule, showStartPopup } from "./modules/useTurnModule";
 
 export function useBasState({ socket, roomId, myRole, enemyRole, isEnemy }) {
@@ -37,19 +37,20 @@ export function useBasState({ socket, roomId, myRole, enemyRole, isEnemy }) {
   });
 
   // เรียกใช้ Hook Summon
-  // ✅ 1. ส่ง Props เพิ่มเข้าไปใน Summon System
+  // ✅ ส่ง Props เพิ่มเข้าไปใน Summon System เพื่อใช้เช็คและจัดการการ์ดศัตรู
   const summonMod = useSummonSystem({
     broadcast,
     myRole,
     setAvatarSlots: boardMod.setAvatarSlots,
+    avatarSlots: boardMod.avatarSlots,
     setHandCards: boardMod.setHandCards,
     setEnd1Cards: boardMod.setEnd1Cards,
     setEnemyEnd1: boardMod.setEnemyEnd1,
     handCards: boardMod.handCards,
     magicSlots: boardMod.magicSlots,
+    
     setMagicSlots: boardMod.setMagicSlots,
 
-    // เพิ่ม 3 บรรทัดนี้
     enemyAvatarSlots: boardMod.enemyAvatarSlots,
     setEnemyAvatarSlots: boardMod.setEnemyAvatarSlots,
     enemyEnd1: boardMod.enemyEnd1
@@ -141,7 +142,8 @@ export function useBasState({ socket, roomId, myRole, enemyRole, isEnemy }) {
     if (!isEnemy && boardMod.handCards) {
       broadcast("update_hand_count", boardMod.handCards.length);
     }
-  }, [boardMod.handCards, isEnemy]); // ทำงานเมื่อการ์ดเราเปลี่ยน
+  }, [boardMod.handCards, isEnemy]);
+
   useEffect(() => {
     if (!socket) return;
     const listener = (data) => {
@@ -167,44 +169,29 @@ export function useBasState({ socket, roomId, myRole, enemyRole, isEnemy }) {
               });
             }
             break;
-          case "update_enemy_after_summon": {
-            if (!isEnemy) { // ถ้าเราเป็นฝ่ายที่โดนกระทำ (ไม่ใช่ศัตรูในมุมมองตัวเอง)
-              const { enemyEnd1, enemyAvatar } = data.payload;
 
-              // อัปเดต End1 ของเรา
-              updateEnd1(enemyEnd1);
-
-              // อัปเดต Avatar ของเรา (ลบ Battle ออก)
-              const newAv = [enemyAvatar[0], enemyAvatar[1], enemyAvatar[2], enemyAvatar[3]];
-              newAv.battle = enemyAvatar.battle; // น่าจะเป็น null
-              updateAvatar(newAv);
-            }
-            break;
-          }
-
-          // ✅ 3. เพิ่ม Case รับจำนวนการ์ดจากศัตรู
           case "update_hand_count":
             if (data.sender === enemyRole) {
               setEnemyHandCount(data.payload);
             }
             break;
+
           // Board & Game Logic
           case "update_magic": boardMod.setEnemyMagicSlots(data.payload); break;
-          // case "update_avatar": boardMod.setEnemyAvatarSlots(data.payload); break;
-          // ✅✅✅ แก้ไขเพื่อรับค่า Battle Slot ✅✅✅
+
+          // 🔥🔥🔥 แก้ไขจุดนี้ (1/3): แปลง Object กลับเป็น Array เพื่อให้เห็นการ์ด Battle 🔥🔥🔥
           case "update_avatar": {
-            const raw = data.payload; // รับข้อมูลมา (ซึ่งจะเป็น Object)
-
-            // 1. แปลงกลับเป็น Array 4 ช่องเหมือนเดิม
-            const newAvatarArray = [raw[0], raw[1], raw[2], raw[3]];
-
-            // 2. แปะค่า battle กลับเข้าไปใน Array
-            newAvatarArray.battle = raw.battle;
-
-            // 3. อัปเดตหน้าจอ
-            boardMod.setEnemyAvatarSlots(newAvatarArray);
+            const raw = data.payload;
+            if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
+              const newAvatarArray = [raw[0], raw[1], raw[2], raw[3]];
+              newAvatarArray.battle = raw.battle;
+              boardMod.setEnemyAvatarSlots(newAvatarArray);
+            } else {
+              boardMod.setEnemyAvatarSlots(raw);
+            }
             break;
           }
+
           case "update_mods": boardMod.setEnemyModSlots(data.payload); break;
           case "update_end1": boardMod.setEnemyEnd1(data.payload); break;
           case "update_end2": boardMod.setEnemyEnd2(data.payload); break;
@@ -220,12 +207,23 @@ export function useBasState({ socket, roomId, myRole, enemyRole, isEnemy }) {
           case "update_start_stage": startMod.setEnemyStartStage(data.payload); break;
           case "roll_dice": diceMod.setDiceState(data.payload); break;
 
+          // 🔥🔥🔥 แก้ไขจุดนี้ (2/3): รับผลการโจมตี โดยใช้ Setter ตรง (ข้าม isMyTurn) 🔥🔥🔥
           case "update_enemy_after_attack": {
-            if (!isEnemy) {
+            if (!isEnemy) { // เราคือผู้ถูกโจมตี
               const { enemyEnd1, enemyAvatar, enemyMods, attackerIndex } = data.payload;
-              updateEnd1(enemyEnd1);
-              updateAvatar(enemyAvatar);
-              updateMods(enemyMods);
+
+              // ใช้ Setter ตรงๆ
+              boardMod.setEnd1Cards(enemyEnd1);
+              boardMod.setModSlots(enemyMods);
+
+              // แปลง Avatar Object -> Array
+              let finalAvatar = enemyAvatar;
+              if (enemyAvatar && typeof enemyAvatar === 'object' && !Array.isArray(enemyAvatar)) {
+                finalAvatar = [enemyAvatar[0], enemyAvatar[1], enemyAvatar[2], enemyAvatar[3]];
+                finalAvatar.battle = enemyAvatar.battle;
+              }
+              boardMod.setAvatarSlots(finalAvatar);
+
               boardMod.setEnemyRotation((prev) => {
                 const next = [...prev];
                 next[attackerIndex] = 90;
@@ -234,6 +232,23 @@ export function useBasState({ socket, roomId, myRole, enemyRole, isEnemy }) {
             }
             break;
           }
+
+          // 🔥🔥🔥 แก้ไขจุดนี้ (3/3): รับผลการโดนดีดการ์ด (Kick) โดยใช้ Setter ตรง 🔥🔥🔥
+          case "update_enemy_after_summon": {
+            if (!isEnemy) { // เราคือผู้ถูกดีด
+              const { enemyEnd1, enemyAvatar } = data.payload;
+
+              // ใช้ Setter ตรงๆ
+              boardMod.setEnd1Cards(enemyEnd1);
+
+              // แปลง Avatar Object -> Array (ลบ Battle ออก)
+              const newAv = [enemyAvatar[0], enemyAvatar[1], enemyAvatar[2], enemyAvatar[3]];
+              newAv.battle = enemyAvatar.battle; // น่าจะเป็น null
+              boardMod.setAvatarSlots(newAv);
+            }
+            break;
+          }
+
           case "receive_base_damage": {
             const { newCards, hitCardImage } = data.payload;
             startMod.setStartCards(newCards);
@@ -249,6 +264,7 @@ export function useBasState({ socket, roomId, myRole, enemyRole, isEnemy }) {
             });
             break;
           }
+
           case "trigger_battle_anim":
             battleMod.setBattleAnim({
               isOpen: true,
@@ -256,10 +272,12 @@ export function useBasState({ socket, roomId, myRole, enemyRole, isEnemy }) {
               defenderImg: data.payload.defenderImg,
             });
             break;
+
           case "game_over": {
             Swal.fire({ title: "พ่ายแพ้! 💀", icon: "error" });
             break;
           }
+
           case "snoop_init": snoopMod.setSnoopState(data.payload); break;
           case "snoop_flip":
             snoopMod.setSnoopState((prev) => ({
@@ -281,7 +299,6 @@ export function useBasState({ socket, roomId, myRole, enemyRole, isEnemy }) {
             break;
           }
 
-          // ✅✅✅ SUMMON SYSTEM (CLEANED) ✅✅✅
           case "summon_update":
             summonMod.setSummonState(data.payload);
             break;
@@ -290,14 +307,11 @@ export function useBasState({ socket, roomId, myRole, enemyRole, isEnemy }) {
             summonMod.setSummonState(data.payload);
             break;
 
-          // ✅✅✅ แก้ไขตรงนี้ครับ ✅✅✅
           case "summon_finish":
-
             if (data.sender !== myRole) {
               summonMod.resolveBattle(data.payload);
             }
             break;
-
 
           default: break;
         }
@@ -308,7 +322,7 @@ export function useBasState({ socket, roomId, myRole, enemyRole, isEnemy }) {
 
     socket.on("receive_action", listener);
     return () => socket.off("receive_action", listener);
-}, [socket, enemyRole, myRole, isEnemy, boardMod.deckCards, boardMod.handCards, boardMod.magicSlots, snoopMod.snoopState, boardMod.enemyAvatarSlots, boardMod.enemyEnd1]); // เพิ่ม dependency
+  }, [socket, enemyRole, myRole, isEnemy, boardMod.deckCards, boardMod.handCards, boardMod.magicSlots, snoopMod.snoopState, boardMod.enemyAvatarSlots, boardMod.enemyEnd1]);
 
   // ----------------------------------------------------
   // 📦 EXPORT
