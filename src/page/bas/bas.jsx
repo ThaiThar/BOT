@@ -24,8 +24,8 @@ function Bas({
   // =================================================
   // 🧠 Local State
   // =================================================
-  const [enemyHandCount, setEnemyHandCount] = useState(0);
 
+const enemyHandCount = gameState.enemyHandCount || 0;
   // =================================================
   // 🔄 Turn Control
   // =================================================
@@ -137,9 +137,9 @@ function Bas({
     ? gameState.enemyStartStage
     : gameState.startStage;
 
-  const setStartCards = isEnemy ? () => {} : gameState.updateStartCards;
-  const setStartImages = isEnemy ? () => {} : gameState.updateStartImages;
-  const setStartStage = isEnemy ? () => {} : gameState.updateStartStage;
+  const setStartCards = isEnemy ? () => { } : gameState.updateStartCards;
+  const setStartImages = isEnemy ? () => { } : gameState.updateStartImages;
+  const setStartStage = isEnemy ? () => { } : gameState.updateStartStage;
 
   const handleDrawCard = (card) => {
     // ⚠️ ถ้าต้องการให้จั่วได้เฉพาะตาตัวเอง ให้ใส่เงื่อนไข if (!isMyTurn) return; ตรงนี้
@@ -156,10 +156,10 @@ function Bas({
       style={{
         // ✅ แก้ไข: เอาเงื่อนไข Opacity ออก ให้แสดงผลชัดเจนตลอดเวลา
         // opacity: !isMyTurn && !isEnemy ? 0.85 : 1, 
-        opacity: 1, 
+        opacity: 1,
         transition: "all 0.3s ease",
         // ✅ เพิ่ม: เพื่อให้แน่ใจว่าคลิกได้แน่นอน (เผื่อ CSS มี pointer-events: none)
-        pointerEvents: "auto" 
+        pointerEvents: "auto"
       }}
     >
       {/* ================= TURN BAR ================= */}
@@ -251,7 +251,10 @@ function Bas({
         end2Cards={uiEnd2}
         setEnd2Cards={gameState.updateEnd2}
         isEnemy={isEnemy}
-        enemyHandCount={isEnemy ? 0 : enemyHandCount}
+
+        // ✅✅✅ แก้ไขตรงนี้ครับ ✅✅✅
+        enemyHandCount={enemyHandCount}
+
         initiateSummon={gameState.initiateSummon}
       />
 
@@ -283,7 +286,7 @@ function Bas({
             end2Cards={uiEnd2}
             deckCards={uiDeck}
             avatarRotation={uiRotation}
-            setMagicSlots={isEnemy ? () => {} : gameState.updateMagic}
+            setMagicSlots={isEnemy ? () => { } : gameState.updateMagic}
             setAvatarSlots={gameState.updateAvatar}
             setModSlots={gameState.updateMods}
             setHandCards={gameState.updateHand}
@@ -292,11 +295,11 @@ function Bas({
             setDeckCards={gameState.updateDeck}
             setAvatarRotation={gameState.updateRotation}
             isEnemy={isEnemy}
-            
+
             // ⚠️ การโจมตี (onAttack) อาจจะต้องไปเช็คใน useBattleSystem ว่าห้ามตีถ้าไม่ใช่เทิร์น
             // แต่ปุ่ม UI จะแสดงผลให้เห็นและกดได้ (ถ้าไม่ได้ซ่อนปุ่มใน Center)
             onAttack={startAttack}
-            
+
             summonState={gameState.summonState}
             handCards={gameState.handCards}
             startClash={gameState.startClash}

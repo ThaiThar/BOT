@@ -1,56 +1,105 @@
+/* handbutton.css */
+
+/* 1. Wrapper แบบ Slider (เลื่อนซ้ายขวาได้ แต่อยู่ล่างตลอด) */
+.hand-slider-wrapper {
+  position: fixed;
+  bottom: 20px;       /* ✅ ล็อคไว้ที่ด้านล่างเสมอ */
+  
+  /* เทคนิคจัดกึ่งกลางจุดหมุน: 
+     เวลาเราสั่ง left: 50% มันจะเริ่มวาดจากจุด 50% ไปทางขวา
+     เราต้องสั่ง translateX(-50%) เพื่อดึงมันกลับมาให้จุดกึ่งกลางของปุ่ม อยู่ตรงเมาส์พอดี
+  */
+  transform: translateX(-50%); 
+  
+  z-index: 99999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  user-select: none; /* ห้ามคลุมดำข้อความ */
+}
+
+/* 2. กล่อง Preview (เหมือนเดิม) */
+.hand-preview-container {
+  display: flex;
+  gap: 5px;
+  background: rgba(0, 0, 0, 0.85);
+  padding: 8px 12px;
+  border-radius: 12px;
+  margin-bottom: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  animation: slideUpFade 0.3s ease-out;
+  max-width: 80vw;
+  overflow-x: auto;
+  white-space: nowrap;
+  pointer-events: auto; /* ให้กด scroll ได้ */
+}
+.hand-preview-container::-webkit-scrollbar { height: 6px; }
+.hand-preview-container::-webkit-scrollbar-thumb { background: #555; border-radius: 3px; }
+
+.mini-card-preview {
+  width: 50px;
+  height: auto;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  border: 1px solid #555;
+  transition: transform 0.2s;
+}
+.mini-card-preview:hover {
+  transform: translateY(-5px) scale(1.2);
+  border-color: #fff;
+  z-index: 10;
+}
+
+/* 3. ปุ่มกด (เหมือนเดิม) */
 .hand-floating-btn {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-
-    background: #222;
-    color: white;
-    border: none;
-    padding: 12px 20px;
-
-    font-size: 18px;
-    font-weight: bold;
-
-    border-radius: 50px;
-    cursor: pointer;
-
-    box-shadow: 0 3px 10px rgba(0,0,0,0.3);
-    z-index: 9999;
-
-    transition: 0.2s;
+  background: linear-gradient(45deg, #2c3e50, #4ca1af);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  padding: 12px 24px;
+  border-radius: 30px;
+  font-weight: bold;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+  transition: transform 0.2s, box-shadow 0.2s; 
+  min-width: 120px;
+  pointer-events: auto;
 }
-
 .hand-floating-btn:hover {
-    background: #444;
-    transform: translateY(-3px);
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(76, 161, 175, 0.6);
+  border-color: #fff;
 }
 
+/* Animation */
+@keyframes slideUpFade {
+  from { opacity: 0; transform: translateY(10px) translateX(-50%); } /* ต้องคง translateX ไว้ */
+  to { opacity: 1; transform: translateY(0) translateX(-50%); }
+}
+
+/* =========================================
+   Styles ของ Popup SweetAlert (ของเดิม)
+   ========================================= */
 .hand-grid {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 10px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 10px;
+  max-height: 60vh;
+  overflow-y: auto;
+  padding: 5px;
 }
-
 .hand-img {
-    width: 100%;
-    border-radius: 8px;
-    border: 2px solid #555;
-    cursor: pointer;
+  width: 100%;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.2s;
+  border: 2px solid transparent;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.5);
 }
+.hand-img:hover { transform: scale(1.05); border-color: #00ffcc; z-index: 5; }
 
-.zone-btn {
-    width: 180px;
-    margin: 8px;
-    padding: 12px;
-    border-radius: 10px;
-    border: 2px solid #000;
-    background: #333;
-    color: white;
-    font-size: 16px;
-    cursor: pointer;
-}
-
-.zone-btn:hover {
-    background: #555;
-}
-
+.action-btn-wrap { display: flex; flex-direction: column; gap: 8px; }
+.zone-btn { width: 100%; padding: 12px; border-radius: 8px; background: #333; color: #fff; cursor: pointer; border: 1px solid #555; }
+.zone-btn:hover { background: #555; border-color: #fff; }
+.zone-btn.danger { background: #800; border-color: #a00; }
+.zone-btn.danger:hover { background: #b00; border-color: #f00; }

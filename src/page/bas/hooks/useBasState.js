@@ -1,5 +1,5 @@
 // src/components/Bas/hooks/useBasState.js
-import { useEffect } from "react";
+import { useState, useEffect } from "react"; // ✅ เพิ่ม useState เข้ามา
 import Swal from "sweetalert2";
 
 // Import Modules
@@ -17,6 +17,7 @@ import { useTurnModule, showStartPopup } from "./modules/useTurnModule";
 export function useBasState({ socket, roomId, myRole, enemyRole, isEnemy }) {
   // 1. Init Socket Broadcast
   const { broadcast } = useBasSocket({ socket, roomId, myRole, isEnemy });
+  const [enemyHandCount, setEnemyHandCount] = useState(0);
 
   // 2. Load Sub-Modules
   const turnMod = useTurnModule({ broadcast, myRole, enemyRole });
@@ -43,7 +44,10 @@ export function useBasState({ socket, roomId, myRole, enemyRole, isEnemy }) {
     setHandCards: boardMod.setHandCards,
     setEnd1Cards: boardMod.setEnd1Cards,
     setEnemyEnd1: boardMod.setEnemyEnd1,
-    handCards: boardMod.handCards
+    handCards: boardMod.handCards,
+    magicSlots: boardMod.magicSlots,
+    setMagicSlots: boardMod.setMagicSlots
+
   });
 
   // ----------------------------------------------------
@@ -129,6 +133,11 @@ export function useBasState({ socket, roomId, myRole, enemyRole, isEnemy }) {
   // 🎧 CENTRAL SOCKET LISTENER
   // ----------------------------------------------------
   useEffect(() => {
+    if (!isEnemy && boardMod.handCards) {
+      broadcast("update_hand_count", boardMod.handCards.length);
+    }
+  }, [boardMod.handCards, isEnemy]); // ทำงานเมื่อการ์ดเราเปลี่ยน
+  useEffect(() => {
     if (!socket) return;
     const listener = (data) => {
       try {
@@ -154,6 +163,12 @@ export function useBasState({ socket, roomId, myRole, enemyRole, isEnemy }) {
             }
             break;
 
+          // ✅ 3. เพิ่ม Case รับจำนวนการ์ดจากศัตรู
+          case "update_hand_count":
+            if (data.sender === enemyRole) {
+              setEnemyHandCount(data.payload);
+            }
+            break;
           // Board & Game Logic
           case "update_magic": boardMod.setEnemyMagicSlots(data.payload); break;
           case "update_avatar": boardMod.setEnemyAvatarSlots(data.payload); break;
@@ -244,9 +259,7 @@ export function useBasState({ socket, roomId, myRole, enemyRole, isEnemy }) {
 
           // ✅✅✅ แก้ไขตรงนี้ครับ ✅✅✅
           case "summon_finish":
-            // เช็คก่อนว่า "ใครส่งมา?" 
-            // ถ้าเป็น "ศัตรู" ส่งมา -> เราต้องรัน resolveBattle เพื่อจบตามเขา
-            // แต่ถ้าเป็น "ตัวเราเอง" (myRole) ส่งมา -> ไม่ต้องทำ (เพราะเรารันแบบ Manual ไปแล้วตอนกดปุ่ม)
+
             if (data.sender !== myRole) {
               summonMod.resolveBattle(data.payload);
             }
@@ -262,7 +275,7 @@ export function useBasState({ socket, roomId, myRole, enemyRole, isEnemy }) {
 
     socket.on("receive_action", listener);
     return () => socket.off("receive_action", listener);
-  }, [socket, enemyRole, myRole, isEnemy, boardMod.deckCards, boardMod.handCards, snoopMod.snoopState]);
+  }, [socket, enemyRole, myRole, isEnemy, boardMod.deckCards, boardMod.handCards, boardMod.magicSlots, snoopMod.snoopState]);
 
   // ----------------------------------------------------
   // 📦 EXPORT
@@ -298,5 +311,6 @@ export function useBasState({ socket, roomId, myRole, enemyRole, isEnemy }) {
 
     // ✅ Summon Module
     ...summonMod,
+    enemyHandCount,
   };
 }
