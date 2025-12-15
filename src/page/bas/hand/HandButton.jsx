@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import "./handbutton.css";
+// ✅ Import รูปหลังการ์ด (ตรวจสอบ Path ให้ถูกต้องนะครับ)
 import Backcardhand from "../../../assets/backcard.jpg"
 
 function HandButton({
@@ -19,35 +20,40 @@ function HandButton({
   setEnd2Cards,
   initiateSummon,
   isEnemy,
-  enemyHandCount = 0, // ✅ รับจำนวนการ์ดศัตรูมา
+  enemyHandCount = 0,
 }) {
   const [isHovered, setIsHovered] = useState(false);
   const [leftPos, setLeftPos] = useState(50);
   const [isDragging, setIsDragging] = useState(false);
 
-  // 🎴 รูปหลังการ์ด (เปลี่ยน URL ตรงนี้เป็นรูปหลังการ์ดเกมของคุณ)
   const cardBackImg = Backcardhand;
 
   const safeHandCards = Array.isArray(handCards) ? handCards : [];
   const safeModSlots = Array.isArray(modSlots) ? modSlots : [[], [], [], []];
 
-  // ... (Logic เดิม: removeCardFromHand, dropToBattle ฯลฯ เก็บไว้เหมือนเดิม) ...
+  // ฟังก์ชันลบการ์ดจากมือ
   const removeCardFromHand = (handIndex) => {
     setHandCards((prev) => Array.isArray(prev) ? prev.filter((_, i) => i !== handIndex) : []);
   };
+
+  // -----------------------------------------------------
+  // ⚔️ Action Functions
+  // -----------------------------------------------------
   const dropToBattle = (img, handIndex) => initiateSummon?.(img, "battle");
+  
   const dropToMagic = (img, handIndex) => {
     const idx = magicSlots.indexOf(null);
     if (idx === -1) return Swal.fire("❌ Magic Zone เต็มแล้ว");
     initiateSummon?.(img, `magic-${idx}`);
   };
+
   const dropToAvatar = (img, handIndex) => {
     const idx = avatarSlots.indexOf(null);
     if (idx === -1) return Swal.fire("❌ Avatar Zone เต็มแล้ว");
     initiateSummon?.(img, idx);
   };
+
   const dropToModification = (img, handIndex) => {
-     /* ... Logic เดิม ... */
      Swal.fire({
         title: "ลงเป็น Modification ของ Avatar ช่องไหน?",
         input: "select",
@@ -66,7 +72,27 @@ function HandButton({
       });
   };
 
-  const openCardAction = (img, handIndex) => { /* ... Logic เดิม ... */ 
+  // =====================================================
+  // 🔥🔥🔥 ฟังก์ชันทิ้งการ์ดลง End (แก้ไขตามที่ขอ) 🔥🔥🔥
+  // =====================================================
+  const dropToEnd1 = (img, handIndex) => {
+     // 1. เพิ่มการ์ดลงกอง End1 (สุสานเรา)
+     setEnd1Cards((prev) => [...prev, img]);
+     // 2. ลบออกจากมือ
+     removeCardFromHand(handIndex);
+  };
+
+  const dropToEnd2 = (img, handIndex) => {
+     // 1. เพิ่มการ์ดลงกอง End2 (สุสานศัตรู - กรณีขโมยมาแล้วคืน)
+     setEnd2Cards((prev) => [...prev, img]);
+     // 2. ลบออกจากมือ
+     removeCardFromHand(handIndex);
+  };
+
+  // -----------------------------------------------------
+  // 🎮 Action Menu
+  // -----------------------------------------------------
+  const openCardAction = (img, handIndex) => {
       Swal.fire({
         title: "เลือกการกระทำ",
         html: `
@@ -77,32 +103,37 @@ function HandButton({
             <button class="zone-btn" id="btnAvatar">🛡 Avatar</button>
             <button class="zone-btn" id="btnMod">🔧 Modification</button>
             <div style="display:flex; gap:5px; margin-top:5px;">
-              <button class="zone-btn danger" id="btnEnd1">🔥 END1</button>
-              <button class="zone-btn danger" id="btnEnd2">💀 END2</button>
+              <button class="zone-btn danger" id="btnEnd1">🔥 ทิ้งลง END1</button>
+              <button class="zone-btn danger" id="btnEnd2">💀 ทิ้งลง END2</button>
             </div>
           </div>
         `,
-        showConfirmButton: false, width: 450, background: "#111", color: "#fff",
+        showConfirmButton: false, 
+        width: 450, 
+        background: "#111", 
+        color: "#fff",
       });
+
       setTimeout(() => {
-        const bind = (id, fn) => { const el = document.getElementById(id); if (el) el.onclick = () => { Swal.close(); fn(); }; };
+        const bind = (id, fn) => { 
+            const el = document.getElementById(id); 
+            if (el) el.onclick = () => { Swal.close(); fn(); }; 
+        };
+
         bind("btnBattleCenter", () => dropToBattle(img, handIndex));
         bind("btnMagic", () => dropToMagic(img, handIndex));
         bind("btnAvatar", () => dropToAvatar(img, handIndex));
         bind("btnMod", () => dropToModification(img, handIndex));
-        bind("btnEnd1", () => { setEnd1Cards((p) => [...p, img]); removeCardFromHand(handIndex); });
-        bind("btnEnd2", () => { setEnd2Cards((p) => [...p, img]); removeCardFromHand(handIndex); });
+
+        // ✅ เรียกใช้ฟังก์ชันทิ้งการ์ดที่เขียนไว้ด้านบน
+        bind("btnEnd1", () => dropToEnd1(img, handIndex));
+        bind("btnEnd2", () => dropToEnd2(img, handIndex));
       }, 50);
   };
 
   const openHandPopup = () => {
-    // -----------------------------------------------------------------
-    // ✅ 1. ถ้าเป็นศัตรู ให้โชว์ Grid หลังการ์ด แทนข้อความ text
-    // -----------------------------------------------------------------
     if (isEnemy) {
-        // สร้าง Array ตามจำนวนการ์ดศัตรู
         const enemyCardsArray = Array.from({ length: enemyHandCount });
-        
         return Swal.fire({
             title: `มือของคู่แข่ง (${enemyHandCount} ใบ)`,
             html: `
@@ -112,15 +143,10 @@ function HandButton({
                 `).join("")}
               </div>
             `,
-            width: "750px",
-            background: "#111",
-            color: "#fff",
-            showConfirmButton: false, // ปิดปุ่ม OK
-            showCloseButton: true,    // มีปุ่มกากบาทปิดแทน
+            width: "750px", background: "#111", color: "#fff", showConfirmButton: false, showCloseButton: true,
         });
     }
 
-    // ส่วนของ User เอง (เหมือนเดิม)
     if (safeHandCards.length === 0) return Swal.fire({ title: "🔹 ไม่มีการ์ดในมือ", background: "#111", color: "#fff" });
 
     Swal.fire({
@@ -130,7 +156,6 @@ function HandButton({
     });
     setTimeout(() => {
       document.querySelectorAll(".hand-img").forEach((el) => {
-        // เช็คก่อนว่ามี data-i หรือไม่ (ของศัตรูไม่มี)
         if(el.dataset.i) {
             el.onclick = () => { const idx = Number(el.dataset.i); Swal.close(); openCardAction(safeHandCards[idx], idx); };
         }
@@ -171,14 +196,9 @@ function HandButton({
       onMouseDown={handleMouseDown}
       style={{ left: `${leftPos}%`, cursor: isDragging ? "grabbing" : "grab" }}
     >
-      {/* -----------------------------------------------------------------
-         ✅ 2. ส่วน Preview: ปรับให้โชว์ทั้งของเรา (หน้าไพ่) และศัตรู (หลังไพ่)
-         -----------------------------------------------------------------
-      */}
       {isHovered && (
           <div className="hand-preview-container">
             {isEnemy ? (
-                // 🔴 ของศัตรู: วนลูปโชว์ "หลังการ์ด" ตามจำนวน
                 enemyHandCount > 0 ? (
                     Array.from({ length: enemyHandCount }).map((_, idx) => (
                         <img key={idx} src={cardBackImg} alt="enemy-card" className="mini-card-preview" />
@@ -187,7 +207,6 @@ function HandButton({
                     <span style={{color:'#aaa', fontSize:'12px'}}>ไม่มีการ์ด</span>
                 )
             ) : (
-                // 🔵 ของเรา: โชว์หน้าไพ่จริง
                 safeHandCards.length > 0 && safeHandCards.map((img, idx) => (
                     <img key={idx} src={img} alt="card" className="mini-card-preview" />
                 ))
@@ -198,7 +217,7 @@ function HandButton({
       <button
         className="hand-floating-btn"
         onClick={openHandPopup}
-        disabled={false} // ✅ เปิดให้กดได้แล้ว (เพื่อดูจำนวนการ์ดแบบชัดๆ)
+        disabled={false}
         style={{
           background: isEnemy ? "linear-gradient(45deg, #c0392b, #e74c3c)" : undefined,
         }}

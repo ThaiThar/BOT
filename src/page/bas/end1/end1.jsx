@@ -167,12 +167,24 @@ function End1({
                   เลือกการ์ด
                 </div>
 
+                {/* ✅✅✅ แก้ไขปุ่ม Discard (ทิ้งการ์ด) ✅✅✅ */}
                 <div
                   className="buttomdeckcard discard"
                   onClick={() => {
-                    if (deckCards.length === 0)
-                      return Swal.fire("ไม่มีการ์ดในกอง");
-                    Swal.fire("ฟังก์ชัน discard ยังไม่เปิดใช้");
+                    // 1. เช็คว่ามีการ์ดในกองไหม
+                    if (deckCards.length === 0) return Swal.fire("ไม่มีการ์ดในกอง");
+
+                    // 2. ก๊อปปี้กองการ์ดมา
+                    const newDeck = [...deckCards];
+                    
+                    // 3. ดึงใบสุดท้ายออก (ใบบนสุด)
+                    const topCard = newDeck.pop(); 
+
+                    // 4. อัปเดตกองการ์ดใหม่ (ลบใบนั้นออกแล้ว)
+                    setDeckCards(newDeck);
+                    
+                    // 5. เอาการ์ดใบนั้นไปใส่ใน End1 (สุสาน)
+                    setEnd1Cards((prev) => [...prev, topCard]);
                   }}
                 >
                   ทิ้งการ์ด
